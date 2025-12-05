@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>登入 - 技能交換平台</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav>
+        <div class="logo">SkillSwap</div>
+        <ul>
+            <li><a href="index.html">回首頁</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <div class="form-container" style="max-width: 400px; margin: 0 auto;">
+            <h2 id="form-title">學號登入</h2>
+            
+            <form id="auth-form">
+                <div style="margin-bottom: 15px;">
+                    <label for="student-id">學號 (Student ID):</label><br>
+                    <input type="text" id="student-id" name="student_id" required placeholder="例如: 01357043" style="width: 100%; padding: 8px;">
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <label for="password">密碼:</label><br>
+                    <input type="password" id="password" name="password" required style="width: 100%; padding: 8px;">
+                </div>
+
+                <button type="submit">登入</button>
+            </form>
+            
+            <hr>
+            <p>還沒有帳號？ <a href="#">註冊新帳號</a></p>
+        </div>
+    </main>
+</body>
+</html>
