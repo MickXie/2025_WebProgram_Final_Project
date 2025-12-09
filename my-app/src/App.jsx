@@ -7,7 +7,6 @@ import Login from "./pages/Login";
 import Match from "./pages/Match";
 import Chat from "./pages/Chat";
 import Profile from "./pages/Profile";
-
 function App() {
   return (
     <>
@@ -24,5 +23,4 @@ function App() {
     </>
   );
 }
-
 export default App;
