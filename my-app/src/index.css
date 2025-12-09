@@ -60,3 +60,29 @@ button {
   border: none;
   border-radius: 5px;
 }
+nav a.active {
+  color: gold;
+  font-weight: bold;
+  text-decoration: underline;
+}
+.blur-container {
+  position: relative;
+}
+
+.blur-content {
+  filter: blur(6px);
+  pointer-events: none;
+}
+
+.login-required-warning {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(255, 200, 0, 0.95);
+  padding: 20px 30px;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+}

@@ -1,18 +1,33 @@
-import { Outlet, Navigate } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 export default function PrivateLayout() {
-  const isLoggedIn = localStorage.getItem("user"); // 未來改 auth context
+  const [loggedIn, setLoggedIn] = useState(localStorage.getItem("loggedIn") === "true");
 
-  if (!isLoggedIn) {
-    return <Navigate to="/login" replace />;
+  useEffect(() => {
+    const checkLogin = () => {
+      setLoggedIn(localStorage.getItem("loggedIn") === "true");
+    };
+    window.addEventListener("storage", checkLogin);
+    return () => window.removeEventListener("storage", checkLogin);
+  }, []);
+
+  if (!loggedIn) {
+    return (
+      <div className="blur-container">
+        <div className="blur-content">
+          <Outlet />
+        </div>
+        <div className="login-required-warning">
+          請先登入才能使用此功能
+          <br />
+          <button onClick={() => window.location.href = "/login"}>
+            前往登入
+          </button>
+        </div>
+      </div>
+    );
   }
 
-  return (
-    <div style={{ display: "flex" }}>
-      {/* 未來放 Sidebar / Header / Chat Icon */}
-      <div style={{ flex: 1, padding: "24px" }}>
-        <Outlet />
-      </div>
-    </div>
-  );
+  return <Outlet />;
 }

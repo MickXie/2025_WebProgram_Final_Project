@@ -1,37 +1,33 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
+import PrivateLayout from "./layouts/PrivateLayout";
 
+import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
-import Login from "./pages/Login";
 import About from "./pages/About";
 import Explore from "./pages/Explore";
+import Login from "./pages/Login";
 import Match from "./pages/Match";
 import Chat from "./pages/Chat";
 import Profile from "./pages/Profile";
-import NotFound from "./pages/NotFound";
-import PrivateLayout from "./layouts/PrivateLayout";
 
-export default function AppRouter() {
+export default function App() {
   return (
-    <BrowserRouter>
+    <>
+      <Navbar />
       <Routes>
-
-        {/* 公開頁面 */}
+        {/* Public Pages */}
         <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
         <Route path="/about" element={<About />} />
+        <Route path="/login" element={<Login />} />
 
-        {/* 受保護頁面 - 共用 Layout */}
+        {/* Private Pages */}
         <Route element={<PrivateLayout />}>
           <Route path="/explore" element={<Explore />} />
           <Route path="/match" element={<Match />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/profile" element={<Profile />} />
         </Route>
-
-        {/* 404 */}
-        <Route path="*" element={<NotFound />} />
-
       </Routes>
-    </BrowserRouter>
+    </>
   );
 }
