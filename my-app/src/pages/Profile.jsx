@@ -1,50 +1,261 @@
-export default function Profile() {
+import React, { useState, useEffect } from 'react';
+
+function Profile() {
+  const currentUserId = "B123456"; // 模擬登入
+  const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:3001' : '';
+
+  // 狀態管理
+  const [name, setName] = useState('');
+  const [bio, setBio] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState(''); // 新增：頭像連結
+  const [skills, setSkills] = useState([]); 
+  const [selectedCategory, setSelectedCategory] = useState('All'); 
+  const [statusMessage, setStatusMessage] = useState('');
+
+  useEffect(() => {
+    fetchProfile();
+    fetchSkills();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/users/${currentUserId}`);
+      const data = await res.json();
+      if (res.ok) {
+        setName(data.name || '');
+        setBio(data.bio || '');
+        setAvatarUrl(data.avatar_url || ''); // 讀取資料庫的頭像
+      }
+    } catch (error) { console.error(error); }
+  };
+
+  const fetchSkills = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/skills/${currentUserId}`);
+      const data = await res.json();
+      if (res.ok) setSkills(data);
+    } catch (error) { console.error(error); }
+  };
+
+  const handleSkillUpdate = async (skillId, newLevel) => {
+    setSkills(prev => prev.map(s => s.id === skillId ? { ...s, level: newLevel } : s));
+    try {
+      await fetch(`${API_URL}/api/update-skill`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUserId, skillId, level: newLevel }),
+      });
+    } catch (error) { console.error("Update failed", error); }
+  };
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setStatusMessage('儲存中...');
+    try {
+      await fetch(`${API_URL}/api/users/${currentUserId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          name, 
+          bio, 
+          avatar_url: avatarUrl // 傳送頭像連結給後端
+        }),
+      });
+      setStatusMessage('✅ 個人檔案已更新！');
+    } catch (error) { setStatusMessage('❌ 連線錯誤'); }
+  };
+
+  // 技能邏輯 (保持不變)
+  const categories = ['All', ...new Set(skills.map(s => s.category))];
+  const filteredSkills = selectedCategory === 'All' ? skills : skills.filter(s => s.category === selectedCategory);
+  const mySelectedSkills = skills.filter(s => s.level > 0);
+  const getLevelColor = (level) => {
+    if (level === 1) return '#4CAF50';
+    if (level === 2) return '#2196F3';
+    if (level === 3) return '#f44336';
+    return '#ddd';
+  };
+
   return (
-    <main>
-      <section className="card">
-        <h2>個人資料設定</h2>
-        <form>
-          <label>姓名/暱稱:</label>
-          <input type="text" defaultValue="王小明" /><br /><br />
-          <label>自我介紹:</label>
-          <textarea rows="3" cols="30">我很喜歡寫程式，想學吉他。</textarea>
-          <button type="button">儲存資料</button>
-        </form>
-      </section>
+    <div className="form-container" style={{ maxWidth: '800px', margin: '2rem auto', padding: '30px', backgroundColor: '#fff' }}>
+      <h2 style={{ textAlign: 'center', marginBottom: '30px', color: '#333' }}>編輯個人檔案</h2>
 
-      <section className="card">
-        <h3>我擁有的技能 (Skills)</h3>
-        <ul>
-          <li>Python 程式設計 <button>刪除</button></li>
-          <li>網頁開發 <button>刪除</button></li>
-        </ul>
-        <input type="text" placeholder="輸入新技能" />
-        <button>新增</button>
-      </section>
+      <form onSubmit={handleSave}>
+        
+        {/* --- 上半部：頭像與基本資料區 (Flex 排版) --- */}
+        <div style={{ display: 'flex', gap: '40px', marginBottom: '30px', flexWrap: 'wrap' }}>
+          
+          {/* 左側：頭像區 */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
+            {/* 圓形頭像顯示區 */}
+            <div style={{ 
+              width: '150px', 
+              height: '150px', 
+              borderRadius: '50%', 
+              overflow: 'hidden', 
+              border: '3px solid #eee',
+              backgroundColor: '#f9f9f9',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}>
+              <img 
+                src={avatarUrl || 'https://via.placeholder.com/150?text=User'} // 若無圖片顯示預設圖
+                alt="Avatar" 
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={(e) => { e.target.src = 'https://via.placeholder.com/150?text=Error'; }} // 網址錯誤時的備案
+              />
+            </div>
+            
+            {/* 匯入圖片框 */}
+            <input 
+              type="text" 
+              placeholder="輸入圖片網址(URL)..." 
+              value={avatarUrl} 
+              onChange={(e) => setAvatarUrl(e.target.value)}
+              style={{ 
+                width: '160px', 
+                padding: '6px', 
+                fontSize: '0.8rem', 
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                textAlign: 'center'
+              }}
+            />
+            <small style={{ color: '#888', fontSize: '0.7rem' }}>請貼上 .jpg 或 .png 結尾的網址</small>
+          </div>
 
-      <section className="card" style={{ borderLeft: "5px solid orange" }}>
-        <h3>我想學的興趣 (Interests & Level)</h3>
-        <p>設定程度以優化配對演算法：高(3)、中(2)、低(1)</p>
+          {/* 右側：姓名與自介區 */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {/* 姓名輸入 */}
+            <div>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>姓名 / 暱稱</label>
+              <input 
+                type="text" 
+                value={name} 
+                onChange={(e) => setName(e.target.value)}
+                style={{ width: '100%', padding: '10px', fontSize: '1rem', borderRadius: '4px', border: '1px solid #ccc' }}
+                placeholder="你的名字"
+              />
+            </div>
 
-        <div className="interest-item">
-          <span>吉他</span>
-          <select defaultValue="2">
-            <option value="3">高 (High)</option>
-            <option value="2">中 (Mid)</option>
-            <option value="1">低 (Low)</option>
-          </select>
-          <button>刪除</button>
+            {/* 自我介紹 (放在姓名下面) */}
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>自我介紹</label>
+              <textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                style={{ 
+                  width: '100%', 
+                  height: '120px', // 固定高度讓它對齊
+                  padding: '10px', 
+                  fontSize: '0.95rem', 
+                  borderRadius: '4px', 
+                  border: '1px solid #ccc',
+                  resize: 'vertical'
+                }}
+                placeholder="介紹一下你自己，或是你想學什麼？"
+              />
+            </div>
+          </div>
         </div>
-        <br />
 
-        <input type="text" placeholder="輸入興趣標籤" />
-        <select>
-          <option value="3">程度: 高</option>
-          <option value="2">程度: 中</option>
-          <option value="1">程度: 低</option>
-        </select>
-        <button>新增標籤</button>
-      </section>
-    </main>
+        <hr style={{ margin: '30px 0', border: 'none', borderTop: '1px solid #eee' }} />
+
+        {/* --- 下半部：技能選擇區 (保持原樣) --- */}
+        <h3 style={{ marginBottom: '15px' }}>技能專長設定</h3>
+        
+        {/* 分類導覽列 */}
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '15px', overflowX: 'auto' }}>
+          {categories.map(cat => (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => setSelectedCategory(cat)}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '20px',
+                border: 'none',
+                cursor: 'pointer',
+                backgroundColor: selectedCategory === cat ? '#333' : '#f0f0f0',
+                color: selectedCategory === cat ? '#fff' : '#333',
+                fontWeight: 'bold'
+              }}
+            >
+              {cat === 'All' ? '全部' : cat}
+            </button>
+          ))}
+        </div>
+
+        {/* 技能卡片區 */}
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', 
+          gap: '15px',
+          marginBottom: '30px',
+          maxHeight: '350px', 
+          overflowY: 'auto',
+          border: '1px solid #eee',
+          padding: '15px',
+          borderRadius: '8px'
+        }}>
+          {filteredSkills.map(skill => (
+            <div key={skill.id} style={{ 
+              border: skill.level > 0 ? `2px solid ${getLevelColor(skill.level)}` : '1px solid #ddd',
+              padding: '10px', 
+              borderRadius: '8px', 
+              textAlign: 'center',
+              backgroundColor: '#fff'
+            }}>
+              <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>{skill.name}</div>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '5px' }}>
+                {[1, 2, 3].map(lvl => (
+                  <button
+                    key={lvl}
+                    type="button"
+                    onClick={() => handleSkillUpdate(skill.id, skill.level === lvl ? 0 : lvl)}
+                    style={{
+                      width: '30px', height: '30px', borderRadius: '50%',
+                      border: 'none', cursor: 'pointer',
+                      backgroundColor: skill.level === lvl ? getLevelColor(lvl) : '#eee',
+                      color: skill.level === lvl ? '#fff' : '#666',
+                      fontWeight: 'bold', fontSize: '12px'
+                    }}
+                  >
+                    {lvl === 1 ? 'L' : lvl === 2 ? 'M' : 'H'}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* 已選標籤展示 */}
+        {mySelectedSkills.length > 0 && (
+          <div style={{ backgroundColor: '#f9f9f9', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
+            <h4 style={{ margin: '0 0 10px 0' }}>我的技能標籤</h4>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+              {mySelectedSkills.map(skill => (
+                <span key={skill.id} style={{
+                  display: 'inline-flex', alignItems: 'center', padding: '6px 12px',
+                  borderRadius: '20px', backgroundColor: getLevelColor(skill.level), color: 'white', fontSize: '0.9rem'
+                }}>
+                  {skill.name}
+                  <button type="button" onClick={() => handleSkillUpdate(skill.id, 0)} style={{ marginLeft: '8px', background: 'none', border: 'none', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}>×</button>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <button type="submit" style={{ width: '100%', padding: '12px', backgroundColor: '#333', color: 'white', border: 'none', borderRadius: '4px', fontSize: '1rem', cursor: 'pointer' }}>
+          儲存所有變更
+        </button>
+      </form>
+      
+      {statusMessage && <div style={{ marginTop: '15px', textAlign: 'center', color: 'green', fontWeight: 'bold' }}>{statusMessage}</div>}
+    </div>
   );
 }
+
+export default Profile;

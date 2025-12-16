@@ -2,8 +2,8 @@ import { Navigate, Outlet } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 export default function PrivateLayout() {
-  const [loggedIn, setLoggedIn] = useState(localStorage.getItem("loggedIn") === "true");
-
+  let [loggedIn, setLoggedIn] = useState(localStorage.getItem("loggedIn") === "true"); //const
+  loggedIn=true; //整段註解
   useEffect(() => {
     const checkLogin = () => {
       setLoggedIn(localStorage.getItem("loggedIn") === "true");
