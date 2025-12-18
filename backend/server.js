@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(bodyParser.json());
-  
+
 // --- 圖片上傳設定 ---
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)){
@@ -176,4 +176,28 @@ app.post('/api/update-learning-goal', (req, res) => {
   }
 });
 
+// 在 server.js 新增此路由
+app.get('/api/explore', (req, res) => {
+  const sql = `
+    SELECT 
+      u.id, u.name, u.bio, u.avatar_url,
+      (SELECT JSON_GROUP_ARRAY(JSON_OBJECT('name', s.name, 'level', us.level))
+       FROM user_skills us JOIN skills s ON us.skill_id = s.id WHERE us.user_id = u.id) as skills,
+      (SELECT JSON_GROUP_ARRAY(JSON_OBJECT('name', s.name, 'level', ui.level))
+       FROM user_interests ui JOIN skills s ON ui.skill_id = s.id WHERE ui.user_id = u.id) as interests
+    FROM users u
+  `;
+  //Explore 路由
+  db.all(sql, [], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    
+    // 解析 JSON 字串
+    const users = rows.map(row => ({
+      ...row,
+      skills: JSON.parse(row.skills || '[]'),
+      interests: JSON.parse(row.interests || '[]')
+    }));
+    res.json(users);
+  });
+});
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
