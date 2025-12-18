@@ -3,7 +3,6 @@ import PrivateLayout from "./layouts/PrivateLayout";
 
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
-import About from "./pages/About";
 import Explore from "./pages/Explore";
 import Login from "./pages/Login";
 import Match from "./pages/Match";
@@ -17,7 +16,6 @@ export default function App() {
       <Routes>
         {/* Public Pages */}
         <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
         <Route path="/login" element={<Login />} />
 
         {/* Private Pages */}

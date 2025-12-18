@@ -64,7 +64,6 @@ export default function Navbar() {
       <ul>
         {/* 永遠可見 */}
         <li><NavLink to="/" end>首頁</NavLink></li>
-        <li><NavLink to="/about">關於</NavLink></li>
 
         {/* 未登入 */}
         {!loggedIn && (
