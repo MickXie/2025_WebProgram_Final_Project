@@ -1,7 +1,8 @@
 @import "tailwindcss";
+
 /* css/style.css */
 body {
-  font-family: 'Arial', sans-serif;
+  font-family: "Arial", sans-serif;
   margin: 0;
   padding: 0;
   line-height: 1.6;
@@ -36,11 +37,39 @@ nav a:hover {
   /* 金色 highlight */
 }
 
-/* 主要內容區塊 */
+nav a.active {
+  color: gold;
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+/* ================================
+   主要內容區塊（重要：改掉 main 的限制）
+   ================================ */
+
+/* ❌ 原本會害你 Hero / Meteors / Footer 都被鎖在中間窄欄
 main {
   padding: 2rem;
   max-width: 800px;
   margin: 0 auto;
+}
+*/
+
+/* ✅ 改成：main 只負責「全寬」，不要限縮版面 */
+main {
+  padding: 0;
+  max-width: none;
+  margin: 0;
+}
+
+/* ✅ 需要「內容置中 + 限制寬度」時，用這個容器包住 */
+.page-container {
+  max-width: 72rem;
+  /* 1152px，適合大螢幕/作品集 */
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
 }
 
 /* 卡片與表單通用樣式 */
@@ -61,11 +90,8 @@ button {
   border: none;
   border-radius: 5px;
 }
-nav a.active {
-  color: gold;
-  font-weight: bold;
-  text-decoration: underline;
-}
+
+/* blur login block */
 .blur-container {
   position: relative;
 }
@@ -87,6 +113,8 @@ nav a.active {
   font-weight: bold;
   text-align: center;
 }
+
+/* Magic UI meteor animation (保留你的設定) */
 @theme inline {
   --animate-meteor: meteor 5s linear infinite;
 
@@ -105,4 +133,16 @@ nav a.active {
       opacity: 0;
     }
   }
+}
+
+/* 隱藏 scrollbar（保留 scroll 功能） */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  /* IE / Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
