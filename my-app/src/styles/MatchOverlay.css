@@ -1,0 +1,47 @@
+/* src/styles/MatchOverlay.css */
+
+/* 背景淡入 */
+.overlay-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* 標題彈跳效果 */
+.animate-pop-in {
+  animation: popIn 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+  opacity: 0; /* 初始隱藏 */
+}
+
+/* 左側頭像從左邊衝進來 */
+.animate-slide-left {
+  animation: slideFromLeft 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  opacity: 0;
+}
+
+/* 右側頭像從右邊衝進來 */
+.animate-slide-right {
+  animation: slideFromRight 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  opacity: 0;
+  animation-delay: 0.2s; /* 稍微慢一點點出來，比較有層次感 */
+}
+
+/* 關鍵影格定義 */
+@keyframes fadeIn {
+  from { opacity: 0; background-color: rgba(0,0,0,0); }
+  to { opacity: 1; background-color: rgba(0,0,0,0.9); }
+}
+
+@keyframes popIn {
+  0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+  80% { transform: scale(1.1) rotate(5deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+@keyframes slideFromLeft {
+  0% { transform: translateX(-150px); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideFromRight {
+  0% { transform: translateX(150px); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
