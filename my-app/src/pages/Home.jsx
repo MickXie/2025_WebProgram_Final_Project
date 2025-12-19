@@ -51,9 +51,10 @@ export default function Home() {
           >
             讓學習不再孤單
             <br />
-            <span className="opacity-80">
+            <span className="opacity-80 text-slate-700">
               讓專長找到真正的價值
             </span>
+
           </h1>
 
           <p className="mb-12 max-w-2xl leading-relaxed text-slate-500">
