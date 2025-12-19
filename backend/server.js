@@ -315,4 +315,133 @@ app.post('/api/messages', (req, res) => {
 });
 
 
+
+// --- 核心：智慧配對系統 (JS 邏輯版) ---
+app.get('/api/match-candidates', async (req, res) => {
+  const token = req.headers.authorization;
+  
+  // 1. 取得我的資料
+  db.get(`SELECT id FROM users WHERE login_token = ?`, [token], (err, me) => {
+    if (!me) return res.status(401).json({ error: '未登入' });
+
+    // 2. 抓取我的「需求」與「能力」
+    const mySql = `
+      SELECT 'interest' as type, skill_id, level FROM user_interests WHERE user_id = ?
+      UNION
+      SELECT 'skill' as type, skill_id, level FROM user_skills WHERE user_id = ?
+    `;
+
+    db.all(mySql, [me.id, me.id], (err, myData) => {
+      if (err) return res.status(500).json({ error: err.message });
+
+      const myInterests = myData.filter(d => d.type === 'interest');
+      const mySkills = myData.filter(d => d.type === 'skill');
+
+      // 3. 抓取所有「候選人」的完整資料 (排除自己 & 排除好友)
+      // 這裡直接抓出所有需要的欄位，稍後用 JS 算分
+      const candidatesSql = `
+        SELECT 
+          u.id, u.name, u.bio, u.avatar_url,
+          (SELECT JSON_GROUP_ARRAY(JSON_OBJECT('id', s.id, 'name', s.name, 'level', us.level)) 
+           FROM user_skills us JOIN skills s ON us.skill_id = s.id WHERE us.user_id = u.id) as skills_json,
+          (SELECT JSON_GROUP_ARRAY(JSON_OBJECT('id', s.id, 'name', s.name, 'level', ui.level)) 
+           FROM user_interests ui JOIN skills s ON ui.skill_id = s.id WHERE ui.user_id = u.id) as interests_json
+        FROM users u
+        WHERE u.id != ? 
+        AND u.id NOT IN (
+           SELECT friend_id FROM friendships WHERE user_id = ?
+           UNION
+           SELECT user_id FROM friendships WHERE friend_id = ?
+        )
+      `;
+
+      db.all(candidatesSql, [me.id, me.id, me.id], (err, candidates) => {
+        if (err) return res.status(500).json({ error: err.message });
+
+        // --- 演算法開始 (The Algorithm) ---
+        
+        // 權重轉換函式: 1->1, 2->3, 3->5
+        const getWeight = (lvl) => lvl === 3 ? 5 : (lvl === 2 ? 3 : 1);
+
+        const scoredCandidates = candidates.map(user => {
+          const theirSkills = JSON.parse(user.skills_json || '[]');
+          const theirInterests = JSON.parse(user.interests_json || '[]');
+
+          let rawScore = 0;
+          let commonSkills = [];
+
+          // A. 計算「我想學，他會教」 (Forward Match)
+          myInterests.forEach(myInt => {
+            const match = theirSkills.find(s => s.id === myInt.skill_id);
+            if (match) {
+              // 公式：我的慾望等級 * 他的能力等級
+              const score = getWeight(myInt.level) * getWeight(match.level);
+              rawScore += score;
+              commonSkills.push(match.name);
+            }
+          });
+
+          // B. 檢查「互惠加成」 (Reverse Match Bonus)
+          let hasReverseMatch = false;
+          mySkills.forEach(mySkill => {
+             const match = theirInterests.find(target => target.id === mySkill.skill_id);
+             if (match) hasReverseMatch = true;
+          });
+
+          // 如果互相需要，分數 x 1.3
+          if (hasReverseMatch && rawScore > 0) {
+            rawScore = Math.round(rawScore * 1.3);
+          }
+
+          // C. 轉換成百分比 (Normalization)
+          // 假設 40 分算 99% (約等於兩個完美契合的技能 5x5 + 5x5 = 50)
+          let percentage = Math.min(Math.round((rawScore / 40) * 100), 99);
+          // 確保至少有 10% 避免太難看 (如果是純探索卡，可以更低)
+          if (percentage === 0 && rawScore > 0) percentage = 10;
+
+          return {
+            ...user,
+            skills: theirSkills,
+            interests: theirInterests,
+            raw_score: rawScore,
+            match_percentage: percentage,
+            common_skills: commonSkills.join(', '),
+            is_mutual: hasReverseMatch // 標記是否為互惠
+          };
+        });
+
+        // --- 排序與篩選邏輯 (2 高 + 1 低) ---
+        
+        // 1. 先把有分數的人抓出來排序
+        const activeMatches = scoredCandidates.filter(u => u.raw_score > 0)
+                                              .sort((a, b) => b.raw_score - a.raw_score);
+        
+        // 2. 抓出「探索型」 (分數很低甚至是 0 的人，用來探索未知)
+        const lowMatches = scoredCandidates.filter(u => u.raw_score <= 5) // 分數低於 5 分算探索
+                                           .sort(() => 0.5 - Math.random()); // 隨機打亂
+
+        let finalResults = [];
+
+        // 取前 2 名高分
+        if (activeMatches.length > 0) finalResults.push(activeMatches[0]);
+        if (activeMatches.length > 1) finalResults.push(activeMatches[1]);
+
+        // 取 1 名探索 (如果有剩下的低分者，且不是已經被選入的前兩名)
+        const explorationCandidate = lowMatches.find(u => !finalResults.includes(u));
+        if (explorationCandidate) {
+          // 給探索卡加上一個標記，前端可以用
+          explorationCandidate.is_exploration = true;
+          finalResults.push(explorationCandidate);
+        } else if (activeMatches.length > 2) {
+            // 如果沒人可探索，就補第 3 名高分
+            finalResults.push(activeMatches[2]);
+        }
+
+        res.json(finalResults);
+      });
+    });
+  });
+});
+
+
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
