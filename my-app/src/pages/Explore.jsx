@@ -37,40 +37,42 @@ function Explore() {
 
   // 4. 處理「加好友並聊天」的函式
   const handleAddFriend = async () => {
-    if (!currentUserId) {
-      alert("請先登入！");
-      navigate('/login');
-      return;
-    }
-
-    if (!selectedUser) return;
-
-    try {
-      const response = await fetch(`${API_URL}/api/add-friend`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          userId: currentUserId,   // 我 (發起人)
-          friendId: selectedUser.id // 對方 (目標)
-        })
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        setSelectedUser(null);
-        alert(`好友邀請已送出給 ${selectedUser.name}！即將前往聊天室...`);
-        navigate('/chat');
-      } else {
-        alert(result.error || "添加失敗");
+      const token = localStorage.getItem('loginToken');
+      if (!token) {
+        alert('請先登入！');
+        navigate('/login');
+        return;
       }
-    } catch (error) {
-      console.error("API 錯誤:", error);
-      alert("連線發生錯誤");
-    }
-  };
+
+      if (!selectedUser) return;
+
+      try {
+        const response = await fetch(`${API_URL}/api/add-friend`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: token   // ⭐ 關鍵在這行
+          },
+          body: JSON.stringify({
+            friendId: selectedUser.id // ⭐ 不再傳 userId
+          })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          setSelectedUser(null);
+          alert(`好友邀請已送出給 ${selectedUser.name}！`);
+          navigate('/chat');
+        } else {
+          alert(result.error || '添加失敗');
+        }
+      } catch (error) {
+        console.error('API 錯誤:', error);
+        alert('連線發生錯誤');
+      }
+    };
+
 
   const getLevelColor = (level) => level === 3 ? '#2E7D32' : level === 2 ? '#4CAF50' : '#81C784';
   const getGoalColor = (level) => level === 3 ? '#512DA8' : level === 2 ? '#7E57C2' : '#B39DDB';

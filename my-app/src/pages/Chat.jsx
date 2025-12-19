@@ -49,6 +49,57 @@ function Chat() {
   }, [API_URL, navigate]);
 
   /* =====================
+     ⭐ 輪巡好友邀請（你原本就有）
+     ===================== */
+  useEffect(() => {
+    const token = localStorage.getItem('loginToken');
+    if (!token) return;
+
+    const fetchInvites = () => {
+      fetch(`${API_URL}/api/friend-requests`, {
+        headers: { Authorization: token }
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            setInvites(data);
+          }
+        })
+        .catch(err => console.error('好友邀請輪巡失敗', err));
+    };
+
+    fetchInvites();
+    const timer = setInterval(fetchInvites, 5000);
+    return () => clearInterval(timer);
+  }, [API_URL]);
+
+  /* =====================
+     ⭐ 新增：輪巡好友列表（accepted）
+     - 讓接受邀請後不用重整就會出現在好友列表
+     ===================== */
+  useEffect(() => {
+    const token = localStorage.getItem('loginToken');
+    if (!token) return;
+
+    const fetchFriends = () => {
+      fetch(`${API_URL}/api/my-friends`, {
+        headers: { Authorization: token }
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            setFriends(data);
+          }
+        })
+        .catch(err => console.error('好友列表輪巡失敗', err));
+    };
+
+    fetchFriends();
+    const timer = setInterval(fetchFriends, 8000); // 每 8 秒抓一次
+    return () => clearInterval(timer);
+  }, [API_URL]);
+
+  /* =====================
      Polling 抓聊天訊息
      ===================== */
   useEffect(() => {
@@ -81,9 +132,7 @@ function Chat() {
     if (!inputText.trim() || !selectedFriend) return;
 
     if (selectedFriend.status === 'pending') {
-      const myCount = messages.filter(
-        m => m.sender_id === currentUserId
-      ).length;
+      const myCount = messages.filter(m => m.sender_id === currentUserId).length;
       if (myCount >= 2) {
         alert('尚未通過好友邀請，無法再傳送更多訊息');
         return;
@@ -114,19 +163,25 @@ function Chat() {
   };
 
   /* =====================
-     接受好友邀請
+     接受好友邀請（只能被邀請者看到按鈕）
      ===================== */
   const handleAcceptInvite = async (e, invite) => {
     e.stopPropagation();
 
+    const token = localStorage.getItem('loginToken');
     const res = await fetch(`${API_URL}/api/accept-friend`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: token
+      },
       body: JSON.stringify({
         userId: invite.user_id,
         friendId: invite.friend_id
       })
     });
+
+    const result = await res.json().catch(() => ({}));
 
     if (res.ok) {
       setInvites(invites.filter(i => i !== invite));
@@ -139,6 +194,8 @@ function Chat() {
           status: 'accepted'
         }
       ]);
+    } else {
+      alert(result?.error || '接受邀請失敗');
     }
   };
 
@@ -148,20 +205,29 @@ function Chat() {
   const handleRejectInvite = async (e, invite) => {
     e.stopPropagation();
 
-    await fetch(`${API_URL}/api/reject-friend`, {
+    const token = localStorage.getItem('loginToken');
+    const res = await fetch(`${API_URL}/api/reject-friend`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: token
+      },
       body: JSON.stringify({
         userId: invite.user_id,
         friendId: invite.friend_id
       })
     });
 
-    setInvites(invites.filter(i => i !== invite));
+    const result = await res.json().catch(() => ({}));
+    if (res.ok) {
+      setInvites(invites.filter(i => i !== invite));
+    } else {
+      alert(result?.error || '拒絕邀請失敗');
+    }
   };
 
   /* =====================
-     ⭐ 刪除好友（新增）
+     刪除好友（你原本的功能保留）
      ===================== */
   const handleRemoveFriend = async () => {
     if (!selectedFriend) return;
@@ -180,10 +246,14 @@ function Chat() {
       body: JSON.stringify({ friendId: selectedFriend.id })
     });
 
+    const result = await res.json().catch(() => ({}));
+
     if (res.ok) {
       setFriends(friends.filter(f => f.id !== selectedFriend.id));
       setSelectedFriend(null);
       setMessages([]);
+    } else {
+      alert(result?.error || '刪除好友失敗');
     }
   };
 
@@ -203,6 +273,7 @@ function Chat() {
                 好友邀請
                 <span style={styles.badge}>{invites.length}</span>
               </h4>
+
               {invites.map(invite => (
                 <div
                   key={`${invite.user_id}-${invite.friend_id}`}
@@ -228,7 +299,6 @@ function Chat() {
                   <span style={{ marginRight: 'auto' }}>{invite.name}</span>
 
                   {currentUserId === invite.friend_id ? (
-                    /* ✅ 我是被邀請者：可以接受 / 拒絕 */
                     <>
                       <button
                         onClick={(e) => handleAcceptInvite(e, invite)}
@@ -241,7 +311,6 @@ function Chat() {
                       </button>
                     </>
                   ) : (
-                    /* ✅ 我是邀請發送者：只能等待 */
                     <span style={{ color: '#888', fontSize: '0.9rem' }}>
                       已送出邀請
                     </span>
@@ -279,6 +348,7 @@ function Chat() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <img
                   src={selectedFriend.avatar_url}
+                  alt=""
                   style={styles.avatarSmall}
                 />
                 <h3>{selectedFriend.name}</h3>
@@ -364,7 +434,7 @@ function Chat() {
 }
 
 /* =====================
-   完整 Styles（未簡化）
+   你原本完整 Styles（保留不刪）
    ===================== */
 const styles = {
   container: {
