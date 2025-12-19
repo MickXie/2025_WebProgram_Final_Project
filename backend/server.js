@@ -221,64 +221,188 @@ app.get('/api/explore', (req, res) => {
 });
 
 // 新增：添加好友路由
+// ✅ 新的：送出好友邀請（pending）
 app.post('/api/add-friend', (req, res) => {
   const { userId, friendId } = req.body;
 
-  // 1. 基本檢查：不能加自己為好友
   if (userId === friendId) {
     return res.status(400).json({ error: '不能加自己為好友' });
   }
 
-  // 2. 寫入好友關係表
-  // 使用 OR IGNORE 避免重複添加導致報錯
-  // 注意：這裡我們假設好友是雙向的，為了簡化聊天查詢，通常有兩種做法：
-  // 方法 A: 只存一筆 (A, B)，查詢時查 (A, B) 或 (B, A)。
-  // 方法 B: 存兩筆 (A, B) 和 (B, A)。
-  // 為了你的期末專案查詢方便，這裡示範「寫入一筆」，聊天頁面抓取時要記得檢查雙向。
-  
-  const sql = `INSERT OR IGNORE INTO friendships (user_id, friend_id, status) VALUES (?, ?, 'accepted')`;
-  
-  db.run(sql, [userId, friendId], function(err) {
-    if (err) {
-      console.error(err.message);
-      return res.status(500).json({ error: '資料庫錯誤' });
+  const checkSql = `
+    SELECT status FROM friendships
+    WHERE (user_id=? AND friend_id=?)
+       OR (user_id=? AND friend_id=?)
+  `;
+
+  db.get(checkSql, [userId, friendId, friendId, userId], (err, row) => {
+    if (row) {
+      if (row.status === 'accepted')
+        return res.status(400).json({ error: '已經是好友' });
+      if (row.status === 'pending')
+        return res.status(400).json({ error: '好友邀請已送出' });
+      if (row.status === 'rejected')
+        return res.status(400).json({ error: '對方曾拒絕過邀請' });
     }
-    res.json({ message: '已添加好友', success: true });
+
+    const sql = `
+      INSERT INTO friendships (user_id, friend_id, status)
+      VALUES (?, ?, 'pending')
+    `;
+
+    db.run(sql, [userId, friendId], function(err) {
+      if (err) return res.status(500).json({ error: '資料庫錯誤' });
+      res.json({ message: '好友邀請已發出', success: true });
+    });
   });
 });
+
 
 
 // =======================
 // 新增：聊天室相關路由
 // =======================
 
-// 1. 取得我的好友列表 (用於聊天室左側列表)
 app.get('/api/my-friends', (req, res) => {
   const token = req.headers.authorization;
-  
-  // 先用 token 換 user_id
-  db.get(`SELECT id FROM users WHERE login_token = ?`, [token], (err, user) => {
-    if (!user) return res.status(401).json({ error: '未登入' });
-    const myId = user.id;
+  db.get(
+    `SELECT id FROM users WHERE login_token = ?`,
+    [token],
+    (err, user) => {
+      if (!user) return res.status(401).json({ error: '未登入' });
+      const myId = user.id;
 
-    // 搜尋 friendships 表，找出我是 user_id 或 friend_id 的狀況
-    const sql = `
-      SELECT u.id, u.name, u.avatar_url 
-      FROM users u
-      JOIN friendships f 
-      ON (f.user_id = u.id OR f.friend_id = u.id)
-      WHERE (f.user_id = ? OR f.friend_id = ?) 
-      AND u.id != ? 
-      AND f.status = 'accepted'
-    `;
-    
-    db.all(sql, [myId, myId, myId], (err, rows) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json(rows);
-    });
+      const sql = `
+        SELECT u.id, u.name, u.avatar_url, f.status
+        FROM users u
+        JOIN friendships f
+          ON (f.user_id = u.id OR f.friend_id = u.id)
+        WHERE (f.user_id = ? OR f.friend_id = ?)
+          AND u.id != ?
+          AND f.status = 'accepted'
+      `;
+
+      db.all(sql, [myId, myId, myId], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows);
+      });
+    }
+  );
+});
+
+
+// 取得 pending 的好友邀請
+app.get('/api/friend-requests', (req, res) => {
+  const token = req.headers.authorization;
+
+  db.get(
+    `SELECT id FROM users WHERE login_token = ?`,
+    [token],
+    (err, user) => {
+      if (!user) return res.status(401).json({ error: '未登入' });
+      const myId = user.id;
+
+      const sql = `
+        SELECT
+          f.user_id,
+          f.friend_id,
+          u.id AS other_id,
+          u.name,
+          u.avatar_url,
+          f.status
+        FROM friendships f
+        JOIN users u
+          ON u.id = CASE
+            WHEN f.user_id = ? THEN f.friend_id
+            ELSE f.user_id
+          END
+        WHERE (f.user_id = ? OR f.friend_id = ?)
+          AND f.status = 'pending'
+      `;
+
+      db.all(sql, [myId, myId, myId], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows);
+      });
+    }
+  );
+});
+
+app.post('/api/accept-friend', (req, res) => {
+  const { userId, friendId } = req.body;
+
+  const sql = `
+    UPDATE friendships
+    SET status = 'accepted'
+    WHERE user_id = ? AND friend_id = ? AND status = 'pending'
+  `;
+
+  db.run(sql, [userId, friendId], function(err) {
+    if (err) return res.status(500).json({ error: '資料庫錯誤' });
+    if (this.changes === 0)
+      return res.status(400).json({ error: '邀請不存在或已處理' });
+
+    res.json({ message: '好友邀請已接受' });
   });
 });
 
+app.post('/api/reject-friend', (req, res) => {
+  const { userId, friendId } = req.body;
+
+  const sql = `
+    UPDATE friendships
+    SET status = 'rejected'
+    WHERE user_id = ? AND friend_id = ? AND status = 'pending'
+  `;
+
+  db.run(sql, [userId, friendId], function(err) {
+    if (err) return res.status(500).json({ error: '資料庫錯誤' });
+    if (this.changes === 0)
+      return res.status(400).json({ error: '邀請不存在或已處理' });
+
+    res.json({ message: '好友邀請已拒絕' });
+  });
+});
+app.post('/api/remove-friend', (req, res) => {
+  const token = req.headers.authorization;
+  const { friendId } = req.body;
+
+  if (!friendId) {
+    return res.status(400).json({ error: '缺少 friendId' });
+  }
+
+  // 用 token 找我是誰
+  db.get(
+    `SELECT id FROM users WHERE login_token = ?`,
+    [token],
+    (err, user) => {
+      if (!user) return res.status(401).json({ error: '未登入' });
+
+      const myId = user.id;
+
+      const sql = `
+        DELETE FROM friendships
+        WHERE
+          (user_id = ? AND friend_id = ?)
+          OR
+          (user_id = ? AND friend_id = ?)
+      `;
+
+      db.run(sql, [myId, friendId, friendId, myId], function (err) {
+        if (err) {
+          console.error(err);
+          return res.status(500).json({ error: '資料庫錯誤' });
+        }
+
+        if (this.changes === 0) {
+          return res.status(400).json({ error: '好友關係不存在' });
+        }
+
+        res.json({ message: '已刪除好友' });
+      });
+    }
+  );
+});
 // 2. 取得與某人的聊天記錄 (Polling 會一直呼叫這支 API)
 app.get('/api/messages/:friendId', (req, res) => {
   const token = req.headers.authorization;

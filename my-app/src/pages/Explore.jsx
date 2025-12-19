@@ -60,10 +60,9 @@ function Explore() {
       const result = await response.json();
 
       if (response.ok) {
-        // 成功後，關閉 Modal 並導向聊天室
         setSelectedUser(null);
-        alert(`已成功將 ${selectedUser.name} 加入好友！即將前往聊天室...`);
-        navigate('/chat'); 
+        alert(`好友邀請已送出給 ${selectedUser.name}！即將前往聊天室...`);
+        navigate('/chat');
       } else {
         alert(result.error || "添加失敗");
       }
