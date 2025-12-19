@@ -95,6 +95,15 @@ db.serialize(() => {
     PRIMARY KEY (user_id, friend_id)
   )`);
 
+  // 6. 訊息記錄表 (新增)
+  db.run(`CREATE TABLE IF NOT EXISTS messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sender_id TEXT,
+    receiver_id TEXT,
+    content TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+  
 // --- 身份驗證路由 ---
 app.post('/api/register', (req, res) => {
   const { id, password } = req.body;
@@ -237,5 +246,73 @@ app.post('/api/add-friend', (req, res) => {
     res.json({ message: '已添加好友', success: true });
   });
 });
+
+
+// =======================
+// 新增：聊天室相關路由
+// =======================
+
+// 1. 取得我的好友列表 (用於聊天室左側列表)
+app.get('/api/my-friends', (req, res) => {
+  const token = req.headers.authorization;
+  
+  // 先用 token 換 user_id
+  db.get(`SELECT id FROM users WHERE login_token = ?`, [token], (err, user) => {
+    if (!user) return res.status(401).json({ error: '未登入' });
+    const myId = user.id;
+
+    // 搜尋 friendships 表，找出我是 user_id 或 friend_id 的狀況
+    const sql = `
+      SELECT u.id, u.name, u.avatar_url 
+      FROM users u
+      JOIN friendships f 
+      ON (f.user_id = u.id OR f.friend_id = u.id)
+      WHERE (f.user_id = ? OR f.friend_id = ?) 
+      AND u.id != ? 
+      AND f.status = 'accepted'
+    `;
+    
+    db.all(sql, [myId, myId, myId], (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(rows);
+    });
+  });
+});
+
+// 2. 取得與某人的聊天記錄 (Polling 會一直呼叫這支 API)
+app.get('/api/messages/:friendId', (req, res) => {
+  const token = req.headers.authorization;
+  const friendId = req.params.friendId;
+
+  db.get(`SELECT id FROM users WHERE login_token = ?`, [token], (err, user) => {
+    if (!user) return res.status(401).json({ error: '未登入' });
+    const myId = user.id;
+
+    const sql = `
+      SELECT * FROM messages 
+      WHERE (sender_id = ? AND receiver_id = ?) 
+         OR (sender_id = ? AND receiver_id = ?)
+      ORDER BY created_at ASC
+    `;
+    db.all(sql, [myId, friendId, friendId, myId], (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(rows);
+    });
+  });
+});
+
+// 3. 發送訊息
+app.post('/api/messages', (req, res) => {
+  const { senderId, receiverId, content } = req.body;
+  
+  if (!content || !receiverId) return res.status(400).json({ error: '內容不能為空' });
+
+  const sql = `INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)`;
+  db.run(sql, [senderId, receiverId, content], function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ message: '發送成功', id: this.lastID });
+  });
+});
+
 
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
