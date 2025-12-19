@@ -85,6 +85,16 @@ db.serialize(() => {
   )`);
 });
 
+// 5. 好友關係表 (新增部分)
+  // status 預設為 'accepted' 代表直接成為好友 (也可以設計成 pending 等待確認)
+  db.run(`CREATE TABLE IF NOT EXISTS friendships (
+    user_id TEXT,
+    friend_id TEXT,
+    status TEXT DEFAULT 'accepted',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, friend_id)
+  )`);
+
 // --- 身份驗證路由 ---
 app.post('/api/register', (req, res) => {
   const { id, password } = req.body;
@@ -200,4 +210,32 @@ app.get('/api/explore', (req, res) => {
     res.json(users);
   });
 });
+
+// 新增：添加好友路由
+app.post('/api/add-friend', (req, res) => {
+  const { userId, friendId } = req.body;
+
+  // 1. 基本檢查：不能加自己為好友
+  if (userId === friendId) {
+    return res.status(400).json({ error: '不能加自己為好友' });
+  }
+
+  // 2. 寫入好友關係表
+  // 使用 OR IGNORE 避免重複添加導致報錯
+  // 注意：這裡我們假設好友是雙向的，為了簡化聊天查詢，通常有兩種做法：
+  // 方法 A: 只存一筆 (A, B)，查詢時查 (A, B) 或 (B, A)。
+  // 方法 B: 存兩筆 (A, B) 和 (B, A)。
+  // 為了你的期末專案查詢方便，這裡示範「寫入一筆」，聊天頁面抓取時要記得檢查雙向。
+  
+  const sql = `INSERT OR IGNORE INTO friendships (user_id, friend_id, status) VALUES (?, ?, 'accepted')`;
+  
+  db.run(sql, [userId, friendId], function(err) {
+    if (err) {
+      console.error(err.message);
+      return res.status(500).json({ error: '資料庫錯誤' });
+    }
+    res.json({ message: '已添加好友', success: true });
+  });
+});
+
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

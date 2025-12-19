@@ -1,16 +1,77 @@
 import React, { useState, useEffect } from 'react';
+// 1. 引入 useNavigate 用於頁面跳轉
+import { useNavigate } from 'react-router-dom';
 
 function Explore() {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null); // 存放目前點擊的使用者
+  const [currentUserId, setCurrentUserId] = useState(null); // 2. 存放當前登入者的 ID
+
+  const navigate = useNavigate(); // 初始化導航鉤子
   const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:3001' : '';
 
+  // 取得使用者列表
   useEffect(() => {
     fetch(`${API_URL}/api/explore`)
       .then(res => res.json())
       .then(data => setUsers(data))
       .catch(err => console.error("抓取失敗", err));
   }, [API_URL]);
+
+  // 3. 確認當前登入者身分 (為了知道是誰在加好友)
+  useEffect(() => {
+    const token = localStorage.getItem('loginToken');
+    if (token) {
+      fetch(`${API_URL}/api/me`, {
+        headers: { 'Authorization': token }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.user) {
+          setCurrentUserId(data.user.id);
+        }
+      })
+      .catch(err => console.error("驗證失敗", err));
+    }
+  }, [API_URL]);
+
+  // 4. 處理「加好友並聊天」的函式
+  const handleAddFriend = async () => {
+    if (!currentUserId) {
+      alert("請先登入！");
+      navigate('/login');
+      return;
+    }
+
+    if (!selectedUser) return;
+
+    try {
+      const response = await fetch(`${API_URL}/api/add-friend`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userId: currentUserId,   // 我 (發起人)
+          friendId: selectedUser.id // 對方 (目標)
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        // 成功後，關閉 Modal 並導向聊天室
+        setSelectedUser(null);
+        alert(`已成功將 ${selectedUser.name} 加入好友！即將前往聊天室...`);
+        navigate('/chat'); 
+      } else {
+        alert(result.error || "添加失敗");
+      }
+    } catch (error) {
+      console.error("API 錯誤:", error);
+      alert("連線發生錯誤");
+    }
+  };
 
   const getLevelColor = (level) => level === 3 ? '#2E7D32' : level === 2 ? '#4CAF50' : '#81C784';
   const getGoalColor = (level) => level === 3 ? '#512DA8' : level === 2 ? '#7E57C2' : '#B39DDB';
@@ -19,13 +80,14 @@ function Explore() {
     <div style={{ padding: '40px', maxWidth: '1200px', margin: '0 auto' }}>
       <h2 style={{ textAlign: 'center', marginBottom: '40px' }}>探索學習夥伴</h2>
 
-      {/* 1. 一排三張的 Grid */}
+      {/* Grid 列表 (維持原本樣式) */}
       <div style={{ 
         display: 'grid', 
         gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', 
         gap: '30px' 
       }}>
         {users.map(user => (
+          // 如果是自己，可以選擇不顯示，或者顯示但不能點擊 (這裡先照常顯示)
           <div 
             key={user.id} 
             onClick={() => setSelectedUser(user)}
@@ -58,10 +120,10 @@ function Explore() {
         ))}
       </div>
 
-      {/* 2. 放大卡片 Modal (霧面背景) */}
+      {/* 放大卡片 Modal */}
       {selectedUser && (
         <div 
-          onClick={() => setSelectedUser(null)} // 點擊霧面退出
+          onClick={() => setSelectedUser(null)} 
           style={{ 
             position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', 
             backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)',
@@ -69,7 +131,7 @@ function Explore() {
           }}
         >
           <div 
-            onClick={(e) => e.stopPropagation()} // 防止點擊白色卡片也關閉
+            onClick={(e) => e.stopPropagation()} 
             style={{ 
               backgroundColor: '#fff', padding: '40px', borderRadius: '20px', 
               width: '90%', maxWidth: '600px', maxHeight: '80vh', overflowY: 'auto',
@@ -105,8 +167,18 @@ function Explore() {
               ))}
             </div>
 
-            <button style={{ width: '100%', padding: '12px', borderRadius: '10px', border: 'none', backgroundColor: '#333', color: '#fff', cursor: 'pointer', fontSize: '1rem' }}>
-                發送好友申請 / 開始聊天
+            {/* 修改按鈕：綁定 onClick 事件，且如果是自己則停用按鈕 */}
+            <button 
+                onClick={handleAddFriend}
+                disabled={currentUserId === selectedUser.id}
+                style={{ 
+                    width: '100%', padding: '12px', borderRadius: '10px', border: 'none', 
+                    backgroundColor: currentUserId === selectedUser.id ? '#ccc' : '#333', 
+                    color: '#fff', cursor: currentUserId === selectedUser.id ? 'not-allowed' : 'pointer', 
+                    fontSize: '1rem' 
+                }}
+            >
+                {currentUserId === selectedUser.id ? '這是你自己' : '發送好友申請 / 開始聊天'}
             </button>
           </div>
         </div>
