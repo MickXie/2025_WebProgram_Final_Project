@@ -128,7 +128,7 @@ function Chat() {
   }, [messages]);
 
   /* =====================
-     發送訊息（文字 + 檔案）
+     發送訊息
      ===================== */
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -176,6 +176,7 @@ function Chat() {
       fileType: uploadedFileType
     };
 
+    // Optimistic UI Update
     setMessages([
       ...messages,
       {
@@ -198,7 +199,6 @@ function Chat() {
     });
   };
 
-  // ... (handleAcceptInvite, handleRejectInvite, handleRemoveFriend 省略，保持不變) ...
   const handleAcceptInvite = async (e, invite) => {
     e.stopPropagation();
     const token = localStorage.getItem('loginToken');
@@ -246,23 +246,24 @@ function Chat() {
       ? messages.filter(m => m.sender_id === currentUserId).length
       : 0;
 
-  /* =====================
-     ✅ 新增：計算目前聊天室的所有學習資料 (檔案/圖片)
-     ===================== */
   const sharedFiles = messages.filter(m => m.file_url);
 
   return (
     <div style={styles.container}>
-      {/* Sidebar - 改為 Flex Column 讓下面可以放檔案區 */}
+      {/* Sidebar - 側邊欄 */}
       <div style={styles.sidebar}>
         
-        {/* 上半部：好友列表 (flex: 1 自動填滿剩餘空間) */}
+        {/* 好友列表區 */}
         <div style={styles.friendListContainer}>
+          <div style={styles.sidebarHeader}>
+            Messaging
+          </div>
+
           <div style={styles.friendList}>
             {invites.length > 0 && (
               <>
-                <h4 style={{ padding: '15px' }}>
-                  好友邀請 <span style={styles.badge}>{invites.length}</span>
+                <h4 style={styles.sectionTitle}>
+                  REQUESTS <span style={styles.badge}>{invites.length}</span>
                 </h4>
                 {invites.map(invite => (
                   <div
@@ -270,126 +271,173 @@ function Chat() {
                     onClick={() => setSelectedFriend({ id: invite.other_id, name: invite.name, avatar_url: invite.avatar_url, status: 'pending' })}
                     style={{
                       ...styles.friendItem,
-                      backgroundColor: selectedFriend?.id === invite.other_id ? '#e3f2fd' : 'transparent'
+                      ...(selectedFriend?.id === invite.other_id ? styles.activeFriendItem : {})
                     }}
                   >
                     <img src={invite.avatar_url || 'https://via.placeholder.com/40'} alt="avatar" style={styles.avatar} />
-                    <span style={{ marginRight: 'auto' }}>{invite.name}</span>
-                    {currentUserId === invite.friend_id ? (
-                      <>
-                        <button onClick={(e) => handleAcceptInvite(e, invite)} style={{ marginRight: '5px' }}>接受</button>
-                        <button onClick={(e) => handleRejectInvite(e, invite)}>拒絕</button>
-                      </>
-                    ) : (
-                      <span style={{ color: '#888', fontSize: '0.9rem' }}>已送出</span>
+                    <div style={{ flex: 1, overflow: 'hidden' }}>
+                       <span style={styles.friendName}>{invite.name}</span>
+                       <div style={{ fontSize: '0.75rem', color: '#999' }}>等待確認...</div>
+                    </div>
+                    {currentUserId === invite.friend_id && (
+                      <div style={{ display: 'flex', gap: '4px' }}>
+                        <button onClick={(e) => handleAcceptInvite(e, invite)} style={styles.actionBtn}>✓</button>
+                        <button onClick={(e) => handleRejectInvite(e, invite)} style={{...styles.actionBtn, color: '#ff6b6b'}}>✕</button>
+                      </div>
                     )}
                   </div>
                 ))}
               </>
             )}
 
-            <h4 style={{ padding: '15px' }}>好友列表</h4>
+            <h4 style={styles.sectionTitle}>CONTACTS</h4>
             {friends.map(friend => (
               <div
                 key={friend.id}
                 style={{
                   ...styles.friendItem,
-                  backgroundColor: selectedFriend?.id === friend.id ? '#e3f2fd' : 'transparent'
+                  ...(selectedFriend?.id === friend.id ? styles.activeFriendItem : {})
                 }}
                 onClick={() => setSelectedFriend({ ...friend, status: 'accepted' })}
               >
                 <img src={friend.avatar_url} alt="" style={styles.avatar} />
-                <span>{friend.name}</span>
+                <span style={styles.friendName}>{friend.name}</span>
+                {/* 增加一個在線小綠點，增加細節感 */}
+                <div style={styles.onlineIndicator}></div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* ✅ 下半部：學習資料整合區 (固定高度或比例) */}
+        {/* 學習資料整合區 (調整為更乾淨的卡片風格) */}
         <div style={styles.filesSection}>
-            <h4 style={styles.filesHeader}>📂 學習資料整合</h4>
+            <h4 style={styles.filesHeader}>Shared Content</h4>
             {selectedFriend ? (
                 <div style={styles.fileGrid}>
                     {sharedFiles.length > 0 ? (
                         sharedFiles.map((m, idx) => (
                             <div key={idx} style={styles.fileItem}>
-                                <a href={m.file_url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>
+                                <a href={m.file_url} target="_blank" rel="noopener noreferrer" style={styles.fileLink}>
                                     {m.file_type && m.file_type.startsWith('image/') ? (
                                         <div style={styles.imageThumbnailBox}>
                                             <img src={m.file_url} alt="file" style={styles.imageThumbnail} />
                                         </div>
                                     ) : (
                                         <div style={styles.docIconBox}>
-                                            📄 <span style={{fontSize:'10px'}}>文件</span>
+                                            <span style={{fontSize:'18px'}}>📄</span>
                                         </div>
                                     )}
                                 </a>
                             </div>
                         ))
                     ) : (
-                        <div style={{ padding: '10px', color: '#999', fontSize: '0.9rem' }}>
-                            尚無分享的資料
-                        </div>
+                        <div style={styles.emptyFilesState}>No files shared yet</div>
                     )}
                 </div>
             ) : (
-                <div style={{ padding: '10px', color: '#999', fontSize: '0.9rem' }}>
-                    請先選擇好友
-                </div>
+                <div style={styles.emptyFilesState}>Select a chat</div>
             )}
         </div>
 
       </div>
 
-      {/* Chat Area */}
+      {/* Chat Area - 聊天主畫面 */}
       <div style={styles.chatArea}>
         {selectedFriend ? (
           <>
             <div style={styles.chatHeader}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <img src={selectedFriend.avatar_url} alt="" style={styles.avatarSmall} />
-                <h3>{selectedFriend.name}</h3>
+                <div>
+                    <h3 style={styles.chatTitle}>{selectedFriend.name}</h3>
+                    <span style={styles.statusText}>{selectedFriend.status === 'pending' ? 'Pending Request' : 'Active now'}</span>
+                </div>
               </div>
               {selectedFriend.status === 'accepted' && (
-                <button onClick={handleRemoveFriend} style={styles.dangerButton}>刪除好友</button>
+                <button onClick={handleRemoveFriend} style={styles.iconButton} title="刪除好友">
+                  <span style={{ fontSize: '1.2rem' }}>🗑</span>
+                </button>
               )}
             </div>
 
             {selectedFriend.status === 'pending' && (
-              <div style={styles.pendingTip}>尚未通過好友邀請，雙方各最多可傳送 2 則訊息</div>
+              <div style={styles.pendingTip}>
+                🔒 尚未成為好友，雙方僅能傳送 2 則訊息
+              </div>
             )}
 
             <div style={styles.messagesBox}>
-              {messages.map((m, i) => (
-                <div key={i} style={{ ...styles.messageRow, justifyContent: m.sender_id === currentUserId ? 'flex-end' : 'flex-start' }}>
-                  <div style={{ ...styles.messageBubble, backgroundColor: m.sender_id === currentUserId ? '#2196F3' : '#f1f1f1', color: m.sender_id === currentUserId ? '#fff' : '#000' }}>
-                    {m.file_url && (
-                        <div style={{ marginBottom: m.content ? '8px' : '0' }}>
-                            {m.file_type && m.file_type.startsWith('image/') ? (
-                                <img src={m.file_url} alt="sent content" style={{ maxWidth: '100%', borderRadius: '8px', display: 'block' }} />
-                            ) : (
-                                <a href={m.file_url} target="_blank" rel="noopener noreferrer" style={{ color: m.sender_id === currentUserId ? '#fff' : 'blue', textDecoration: 'underline', fontWeight: 'bold' }}>
-                                    📄 下載檔案
-                                </a>
-                            )}
-                        </div>
-                    )}
-                    {m.content}
+              {messages.map((m, i) => {
+                 const isMe = m.sender_id === currentUserId;
+                 return (
+                  <div key={i} style={{ ...styles.messageRow, justifyContent: isMe ? 'flex-end' : 'flex-start' }}>
+                    {/* 如果是對方，顯示小頭像在訊息旁 */}
+                    {!isMe && <img src={selectedFriend.avatar_url} style={styles.msgAvatar} alt=""/>}
+                    
+                    <div style={isMe ? styles.myBubble : styles.theirBubble}>
+                      {m.file_url && (
+                          <div style={{ marginBottom: m.content ? '8px' : '0' }}>
+                              {m.file_type && m.file_type.startsWith('image/') ? (
+                                  <img src={m.file_url} alt="sent content" style={styles.msgImage} />
+                              ) : (
+                                  <a href={m.file_url} target="_blank" rel="noopener noreferrer" style={isMe ? styles.linkWhite : styles.linkBlack}>
+                                      📄 下載檔案
+                                  </a>
+                              )}
+                          </div>
+                      )}
+                      {m.content}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
               <div ref={messagesEndRef} />
             </div>
 
             <form onSubmit={handleSendMessage} style={styles.inputArea}>
               <input type="file" ref={fileInputRef} style={{ display: 'none' }} onChange={(e) => setSelectedFile(e.target.files[0])} />
-              <button type="button" onClick={() => fileInputRef.current.click()} disabled={selectedFriend.status === 'pending' && mySentCount >= 2} style={{ ...styles.sendButton, backgroundColor: '#aaa', padding: '10px 15px' }}>📎</button>
-              <input style={styles.input} value={inputText} onChange={e => setInputText(e.target.value)} placeholder={selectedFriend.status === 'pending' && mySentCount >= 2 ? '無法傳送更多訊息' : selectedFile ? `已選擇: ${selectedFile.name}` : '輸入訊息...'} disabled={selectedFriend.status === 'pending' && mySentCount >= 2} />
-              <button type="submit" style={styles.sendButton} disabled={selectedFriend.status === 'pending' && mySentCount >= 2}>發送</button>
+              
+              {/* 迴紋針按鈕 */}
+              <button 
+                type="button" 
+                onClick={() => fileInputRef.current.click()} 
+                disabled={selectedFriend.status === 'pending' && mySentCount >= 2} 
+                style={styles.clipButton}
+              >
+                📎
+              </button>
+
+              <div style={styles.inputWrapper}>
+                  {selectedFile && (
+                      <div style={styles.filePreviewChip}>
+                          📄 {selectedFile.name}
+                          <span style={{cursor:'pointer', marginLeft:'5px'}} onClick={() => setSelectedFile(null)}>✕</span>
+                      </div>
+                  )}
+                  <input 
+                    style={styles.input} 
+                    value={inputText} 
+                    onChange={e => setInputText(e.target.value)} 
+                    placeholder={selectedFriend.status === 'pending' && mySentCount >= 2 ? '功能受限' : '輸入訊息...'} 
+                    disabled={selectedFriend.status === 'pending' && mySentCount >= 2} 
+                  />
+              </div>
+
+              <button 
+                type="submit" 
+                style={styles.sendButton} 
+                disabled={selectedFriend.status === 'pending' && mySentCount >= 2}
+              >
+                ➤
+              </button>
             </form>
           </>
         ) : (
-          <div style={styles.emptyState}><h2>👈 選擇一位好友開始聊天</h2></div>
+          <div style={styles.emptyState}>
+             <div style={styles.emptyStateIcon}>👋</div>
+             <h2>Welcome Back</h2>
+             <p>選擇一位好友開始交流技能</p>
+          </div>
         )}
       </div>
     </div>
@@ -397,191 +445,359 @@ function Chat() {
 }
 
 /* =====================
-   Styles (已更新)
+   ✨ 高級灰與質感 CSS (JSS)
    ===================== */
 const styles = {
   container: {
     display: 'flex',
-    height: 'calc(100vh - 80px)',
-    maxWidth: '1200px',
-    margin: '0 auto',
-    marginTop: '24px', 
-    border: '1px solid #ddd',
-    borderRadius: '10px',
+    height: '85vh',
+    maxWidth: '1100px', // 稍微縮窄一點，增加精緻感
+    margin: '30px auto',
+    backgroundColor: '#fff', // 純白基底
+    borderRadius: '24px', // 更圓潤的邊角
+    boxShadow: '0 20px 60px rgba(0,0,0,0.08)', // 擴散的大陰影，營造懸浮感
     overflow: 'hidden',
-    backgroundColor: '#fff'
+    fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', // 現代字體
   },
+  
+  /* --- Sidebar --- */
   sidebar: {
-    width: '28%',
-    borderRight: '1px solid #ddd',
-    backgroundColor: '#f9f9f9',
-    // ✅ 修改：讓 sidebar 變成 Flex 直向，方便分割上下區
+    width: '320px',
+    backgroundColor: '#fafafa', // 側邊欄使用極淺灰
+    borderRight: '1px solid rgba(0,0,0,0.04)', // 幾乎看不見的邊框
     display: 'flex',
     flexDirection: 'column',
-    overflow: 'hidden' 
   },
-  // ✅ 新增：包裹好友列表的容器 (Flex 1 佔滿上方)
+  sidebarHeader: {
+    padding: '24px 20px',
+    fontSize: '1.4rem',
+    fontWeight: '800',
+    color: '#333',
+    letterSpacing: '-0.5px'
+  },
   friendListContainer: {
     flex: 1,
-    overflowY: 'auto'
+    overflowY: 'auto',
+    padding: '0 10px', // 兩側留白
+  },
+  sectionTitle: {
+    padding: '15px 10px 5px 10px',
+    fontSize: '0.75rem',
+    fontWeight: '700',
+    color: '#999',
+    textTransform: 'uppercase',
+    letterSpacing: '1px'
   },
   friendList: {
     display: 'flex',
-    flexDirection: 'column'
+    flexDirection: 'column',
+    gap: '4px' // 項目間距
   },
   friendItem: {
     display: 'flex',
     alignItems: 'center',
-    padding: '12px 15px',
+    padding: '12px 14px',
     cursor: 'pointer',
-    borderBottom: '1px solid #eee'
+    borderRadius: '12px',
+    transition: 'all 0.2s ease',
+    color: '#555',
+    position: 'relative'
+  },
+  // 當好友被選中時的樣式：像是一張浮起來的白卡片
+  activeFriendItem: {
+    backgroundColor: '#fff',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+    color: '#000',
+    fontWeight: '500'
+  },
+  friendName: {
+    fontSize: '0.95rem',
+    fontWeight: '500',
+    letterSpacing: '0.3px'
   },
   avatar: {
-    width: '42px',
-    height: '42px',
-    borderRadius: '50%',
+    width: '40px',
+    height: '40px',
+    borderRadius: '14px', // 方圓形頭像 (Squircle) 比較現代
     marginRight: '12px',
-    objectFit: 'cover'
+    objectFit: 'cover',
+    boxShadow: '0 2px 5px rgba(0,0,0,0.05)'
   },
-  avatarSmall: {
-    width: '36px',
-    height: '36px',
+  onlineIndicator: {
+    width: '8px',
+    height: '8px',
     borderRadius: '50%',
-    objectFit: 'cover'
+    backgroundColor: '#4caf50',
+    marginLeft: 'auto'
   },
-  // ✅ 新增：檔案區塊樣式
+  badge: {
+    backgroundColor: '#ff4757',
+    color: '#fff',
+    borderRadius: '10px',
+    padding: '2px 6px',
+    marginLeft: '6px',
+    fontSize: '0.65rem',
+    verticalAlign: 'middle'
+  },
+  actionBtn: {
+    border: 'none',
+    background: 'none',
+    cursor: 'pointer',
+    fontWeight: 'bold',
+    color: '#4caf50',
+    fontSize: '1rem',
+    padding: '0 5px'
+  },
+
+  /* --- 檔案區 (Gallery Style) --- */
   filesSection: {
-    height: '35%', // 佔 sidebar 下方 35% 高度
-    borderTop: '2px solid #ddd',
-    backgroundColor: '#fff',
+    height: '180px', // 固定高度
+    borderTop: '1px solid rgba(0,0,0,0.05)',
+    backgroundColor: '#fafafa',
+    padding: '15px 20px',
     display: 'flex',
     flexDirection: 'column'
   },
   filesHeader: {
-    padding: '10px 15px',
-    margin: 0,
-    backgroundColor: '#eee',
-    fontSize: '0.95rem',
-    color: '#555'
+    margin: '0 0 10px 0',
+    fontSize: '0.75rem',
+    fontWeight: '700',
+    color: '#aaa',
+    textTransform: 'uppercase',
+    letterSpacing: '1px'
   },
   fileGrid: {
-    padding: '10px',
-    overflowY: 'auto',
     display: 'flex',
-    flexWrap: 'wrap',
     gap: '10px',
-    alignContent: 'flex-start'
+    overflowX: 'auto', // 改為橫向捲動
+    overflowY: 'hidden',
+    paddingBottom: '5px',
+    alignItems: 'center'
   },
   fileItem: {
-    width: '60px',
-    height: '60px',
-    cursor: 'pointer',
-    transition: 'transform 0.2s'
+    flexShrink: 0,
+    width: '70px',
+    height: '70px',
+  },
+  fileLink: {
+    textDecoration: 'none',
+    display: 'block',
+    width: '100%',
+    height: '100%'
   },
   imageThumbnailBox: {
     width: '100%',
     height: '100%',
-    borderRadius: '8px',
+    borderRadius: '12px',
     overflow: 'hidden',
-    border: '1px solid #eee'
+    boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+    transition: 'transform 0.2s',
   },
   imageThumbnail: {
     width: '100%',
     height: '100%',
-    objectFit: 'cover'
+    objectFit: 'cover',
+    opacity: 0.9
   },
   docIconBox: {
     width: '100%',
     height: '100%',
-    borderRadius: '8px',
-    backgroundColor: '#f0f0f0',
+    borderRadius: '12px',
+    backgroundColor: '#fff',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    border: '1px solid #eee',
+    boxShadow: '0 2px 6px rgba(0,0,0,0.05)'
+  },
+  emptyFilesState: {
+    color: '#ccc',
+    fontSize: '0.8rem',
+    marginTop: '10px',
+    fontStyle: 'italic'
+  },
+
+  /* --- Chat Main Area --- */
+  chatArea: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    backgroundColor: '#fff',
+    position: 'relative'
+  },
+  chatHeader: {
+    padding: '15px 30px',
+    borderBottom: '1px solid rgba(0,0,0,0.04)',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    height: '70px'
+  },
+  chatTitle: {
+    margin: 0,
+    fontSize: '1.1rem',
+    color: '#222'
+  },
+  statusText: {
+    fontSize: '0.8rem',
+    color: '#999'
+  },
+  avatarSmall: {
+    width: '38px',
+    height: '38px',
+    borderRadius: '12px',
+    objectFit: 'cover'
+  },
+  iconButton: {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    opacity: 0.6,
+    transition: 'opacity 0.2s'
+  },
+
+  /* --- Messages --- */
+  messagesBox: {
+    flex: 1,
+    padding: '20px 30px',
+    overflowY: 'auto',
+    backgroundColor: '#fff', // 純白背景
+  },
+  messageRow: {
+    display: 'flex',
+    marginBottom: '18px', // 增加間距
+    alignItems: 'flex-end' // 底部對齊
+  },
+  msgAvatar: {
+    width: '28px',
+    height: '28px',
+    borderRadius: '50%',
+    marginRight: '8px',
+    marginBottom: '4px'
+  },
+  // 我的訊息氣泡：高級深灰漸層
+  myBubble: {
+    padding: '12px 18px',
+    borderRadius: '18px 18px 4px 18px', // 不對稱圓角
+    background: 'linear-gradient(135deg, #444, #2c2c2c)', // 深炭灰漸層
+    color: '#fff',
+    maxWidth: '65%',
+    fontSize: '0.95rem',
+    boxShadow: '0 4px 10px rgba(44, 44, 44, 0.2)', // 質感陰影
+    lineHeight: '1.5'
+  },
+  // 對方訊息氣泡：白色 + 輕微邊框
+  theirBubble: {
+    padding: '12px 18px',
+    borderRadius: '18px 18px 18px 4px',
+    backgroundColor: '#fff',
+    border: '1px solid #f0f0f0',
+    color: '#333',
+    maxWidth: '65%',
+    fontSize: '0.95rem',
+    boxShadow: '0 2px 5px rgba(0,0,0,0.03)',
+    lineHeight: '1.5'
+  },
+  msgImage: {
+    maxWidth: '100%',
+    borderRadius: '10px',
+    marginTop: '5px'
+  },
+  linkWhite: { color: '#fff', textDecoration: 'underline', fontSize: '0.9rem' },
+  linkBlack: { color: '#333', textDecoration: 'underline', fontSize: '0.9rem' },
+
+  /* --- Input Area --- */
+  inputArea: {
+    padding: '20px 30px',
+    borderTop: '1px solid rgba(0,0,0,0.04)',
+    display: 'flex',
+    gap: '12px',
+    alignItems: 'flex-end',
+    backgroundColor: '#fff'
+  },
+  clipButton: {
+    width: '40px',
+    height: '40px',
+    borderRadius: '50%',
+    border: 'none',
+    backgroundColor: '#f5f5f5',
+    color: '#666',
+    fontSize: '1.2rem',
+    cursor: 'pointer',
+    transition: 'background 0.2s',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  inputWrapper: {
+    flex: 1,
+    backgroundColor: '#f5f7f9', // 淺灰輸入底色
+    borderRadius: '24px',
+    padding: '4px 15px',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    minHeight: '44px',
+    border: '1px solid transparent',
+    transition: 'border 0.2s, background 0.2s'
+  },
+  input: {
+    width: '100%',
+    border: 'none',
+    backgroundColor: 'transparent',
+    outline: 'none',
+    fontSize: '0.95rem',
+    color: '#333',
+    padding: '8px 0'
+  },
+  filePreviewChip: {
+    fontSize: '0.8rem',
+    color: '#666',
+    backgroundColor: '#e0e0e0',
+    padding: '2px 8px',
+    borderRadius: '10px',
+    alignSelf: 'flex-start',
+    marginBottom: '2px',
+    display: 'flex',
+    alignItems: 'center'
+  },
+  sendButton: {
+    width: '44px',
+    height: '44px',
+    borderRadius: '50%',
+    border: 'none',
+    background: '#222', // 全黑按鈕
+    color: '#fff',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '1.1rem',
+    boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
+    transition: 'transform 0.1s'
+  },
+  
+  /* --- Empty States --- */
+  emptyState: {
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-    border: '1px solid #ccc',
-    fontSize: '1.2rem'
-  },
-  chatArea: {
-    width: '72%',
-    display: 'flex',
-    flexDirection: 'column'
-  },
-  chatHeader: {
-    padding: '15px',
-    borderBottom: '1px solid #ddd',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#fff'
-  },
-  messagesBox: {
-    flex: 1,
-    padding: '20px',
-    overflowY: 'auto'
-  },
-  messageRow: {
-    display: 'flex',
-    marginBottom: '10px'
-  },
-  messageBubble: {
-    padding: '10px 15px',
-    borderRadius: '18px',
-    maxWidth: '65%',
-    wordWrap: 'break-word',
-    fontSize: '0.95rem'
-  },
-  inputArea: {
-    padding: '15px',
-    borderTop: '1px solid #ddd',
-    display: 'flex',
-    gap: '10px',
-    backgroundColor: '#f9f9f9'
-  },
-  input: {
-    flex: 1,
-    padding: '12px',
-    borderRadius: '20px',
-    border: '1px solid #ccc',
-    outline: 'none'
-  },
-  sendButton: {
-    padding: '10px 24px',
-    borderRadius: '20px',
-    border: 'none',
-    backgroundColor: '#2196F3',
-    color: '#fff',
-    cursor: 'pointer',
-    fontWeight: 'bold'
-  },
-  emptyState: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
     height: '100%',
-    color: '#aaa'
+    color: '#ccc'
+  },
+  emptyStateIcon: {
+    fontSize: '3rem',
+    marginBottom: '15px',
+    opacity: 0.5
   },
   pendingTip: {
-    backgroundColor: '#fff8e1',
-    color: '#8a6d3b',
+    backgroundColor: '#fffcf0', // 極淡的黃
+    color: '#bfa15f',
     padding: '10px 15px',
     textAlign: 'center',
-    borderBottom: '1px solid #ddd'
-  },
-  dangerButton: {
-    background: 'none',
-    border: 'none',
-    color: '#e53935',
-    fontWeight: 'bold',
-    cursor: 'pointer'
-  },
-  badge: {
-    backgroundColor: 'red',
-    color: '#fff',
-    borderRadius: '50%',
-    padding: '2px 6px',
-    marginLeft: '8px',
-    fontSize: '0.8rem'
+    fontSize: '0.85rem',
+    borderBottom: '1px solid #f5ebd6'
   }
 };
 
