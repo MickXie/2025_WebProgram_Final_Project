@@ -302,8 +302,7 @@ function Chat() {
               >
                 <img src={friend.avatar_url} alt="" style={styles.avatar} />
                 <span style={styles.friendName}>{friend.name}</span>
-                {/* 增加一個在線小綠點，增加細節感 */}
-                <div style={styles.onlineIndicator}></div>
+                {/* ❌ 已移除：綠色假狀態燈 */}
               </div>
             ))}
           </div>
@@ -350,7 +349,10 @@ function Chat() {
                 <img src={selectedFriend.avatar_url} alt="" style={styles.avatarSmall} />
                 <div>
                     <h3 style={styles.chatTitle}>{selectedFriend.name}</h3>
-                    <span style={styles.statusText}>{selectedFriend.status === 'pending' ? 'Pending Request' : 'Active now'}</span>
+                    {/* ❌ 修改：移除 Active now，只在 Pending 時顯示狀態 */}
+                    {selectedFriend.status === 'pending' && (
+                       <span style={styles.statusText}>Pending Request</span>
+                    )}
                 </div>
               </div>
               {selectedFriend.status === 'accepted' && (
@@ -523,13 +525,7 @@ const styles = {
     objectFit: 'cover',
     boxShadow: '0 2px 5px rgba(0,0,0,0.05)'
   },
-  onlineIndicator: {
-    width: '8px',
-    height: '8px',
-    borderRadius: '50%',
-    backgroundColor: '#4caf50',
-    marginLeft: 'auto'
-  },
+  // ❌ 已移除：onlineIndicator 樣式
   badge: {
     backgroundColor: '#ff4757',
     color: '#fff',
