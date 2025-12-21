@@ -1,4 +1,4 @@
-// server.js (修正版 - 完整檔)
+// server.js (修正版 - 完整檔 - 支援聊天室檔案上傳)
 
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
@@ -105,12 +105,14 @@ db.serialize(() => {
     PRIMARY KEY (user_id, friend_id)
   )`);
 
-  // 6. 訊息記錄表
+  // 6. 訊息記錄表 (✅ 修改：新增 file_url 和 file_type)
   db.run(`CREATE TABLE IF NOT EXISTS messages (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     sender_id TEXT,
     receiver_id TEXT,
     content TEXT,
+    file_url TEXT,
+    file_type TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
 });
@@ -141,6 +143,15 @@ app.get('/api/me', (req, res) => {
     if (!user) return res.status(401).json({ error: '驗證失敗' });
     res.json({ user });
   });
+});
+
+// --- ✅ 新增：通用檔案上傳路由 (Chat 使用) ---
+app.post('/api/upload', upload.single('file'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: '沒有上傳檔案' });
+  }
+  const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+  res.json({ fileUrl, fileType: req.file.mimetype });
 });
 
 // --- 個人資料更新 ---
@@ -350,7 +361,7 @@ app.get('/api/friend-requests', (req, res) => {
 });
 
 /* ✅ 接受邀請：只能「被邀請者」接受
-   body: { userId: 發出者, friendId: 接受者 }（你前端現在就是這樣送）
+   body: { userId: 發出者, friendId: 接受者 }
 */
 app.post('/api/accept-friend', (req, res) => {
   const { userId, friendId } = req.body;
@@ -424,7 +435,7 @@ app.post('/api/remove-friend', (req, res) => {
   });
 });
 
-// 取得聊天記錄（保留）
+// 取得聊天記錄（保留，SELECT * 會自動抓到新欄位）
 app.get('/api/messages/:friendId', (req, res) => {
   const friendId = req.params.friendId;
 
@@ -445,13 +456,19 @@ app.get('/api/messages/:friendId', (req, res) => {
   });
 });
 
-// 發送訊息（保留）
+// ✅ 修改：發送訊息（支援文字 或 檔案）
 app.post('/api/messages', (req, res) => {
-  const { senderId, receiverId, content } = req.body;
-  if (!content || !receiverId) return res.status(400).json({ error: '內容不能為空' });
+  const { senderId, receiverId, content, fileUrl, fileType } = req.body;
+  
+  // 檢查：一定要有 接收者 且 (有文字 或 有檔案)
+  if ((!content && !fileUrl) || !receiverId) {
+    return res.status(400).json({ error: '內容或檔案不能為空' });
+  }
 
-  const sql = `INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)`;
-  db.run(sql, [senderId, receiverId, content], function (err) {
+  const sql = `INSERT INTO messages (sender_id, receiver_id, content, file_url, file_type) VALUES (?, ?, ?, ?, ?)`;
+  
+  // 如果沒有值則存 null
+  db.run(sql, [senderId, receiverId, content || '', fileUrl || null, fileType || null], function (err) {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ message: '發送成功', id: this.lastID });
   });
@@ -486,9 +503,9 @@ app.get('/api/match-candidates', async (req, res) => {
         FROM users u
         WHERE u.id != ? 
         AND u.id NOT IN (
-           SELECT friend_id FROM friendships WHERE user_id = ?
-           UNION
-           SELECT user_id FROM friendships WHERE friend_id = ?
+            SELECT friend_id FROM friendships WHERE user_id = ?
+            UNION
+            SELECT user_id FROM friendships WHERE friend_id = ?
         )
       `;
 
