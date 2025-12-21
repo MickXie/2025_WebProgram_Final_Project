@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { MagicCard } from "@/components/ui/magic-card";
+import { MagicCard } from "@/components/UI/magic-card";
 import API_URL from "../api";
 
 function Login() {

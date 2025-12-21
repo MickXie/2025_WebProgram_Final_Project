@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import { Meteors } from "@/components/ui/meteors";
-import { Particles } from "@/components/ui/particles";
+import { Meteors } from "@/components/UI/meteors";
+import { Particles } from "@/components/UI/particles";
 
 export default function Home() {
   return (
