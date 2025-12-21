@@ -68,11 +68,62 @@ db.serialize(() => {
       if (row && row.count === 0) {
         const stmt = db.prepare(`INSERT INTO skills (name, category) VALUES (?, ?)`);
         const fullSkillList = [
-          { name: 'Python', category: '程式設計' }, { name: 'JavaScript', category: '程式設計' },
-          { name: 'React', category: '程式設計' }, { name: 'C/C++', category: '程式設計' },
-          { name: '英文口說', category: '語言' }, { name: '日文', category: '語言' },
-          { name: '微積分', category: '學科' }, { name: '木吉他', category: '音樂' },
-          { name: '健身', category: '運動' }, { name: '烹飪', category: '生活' }
+          // --- 程式與科技 ---
+          { name: 'Python', category: '程式設計' },
+          { name: 'JavaScript', category: '程式設計' },
+          { name: 'React', category: '程式設計' },
+          { name: 'C/C++', category: '程式設計' },
+          { name: 'Java', category: '程式設計' },
+          { name: '網頁切版 (HTML/CSS)', category: '程式設計' },
+          { name: 'App開發 (iOS/Android)', category: '程式設計' },
+          { name: 'AI/機器學習', category: '程式設計' },
+
+          // --- 語言學習 ---
+          { name: '英文口說', category: '語言' },
+          { name: '多益 (TOEIC)', category: '語言' },
+          { name: '日文', category: '語言' },
+          { name: '韓文', category: '語言' },
+          { name: '法文', category: '語言' },
+          { name: '德文', category: '語言' },
+          { name: '西班牙文', category: '語言' },
+          { name: '中文導覽', category: '語言' },
+
+          // --- 大學學科 ---
+          { name: '微積分', category: '學科' },
+          { name: '統計學', category: '學科' },
+          { name: '普通物理', category: '學科' },
+          { name: '經濟學', category: '學科' },
+          { name: '會計學', category: '學科' },
+          { name: '心理學概論', category: '學科' },
+
+          // --- 音樂與藝術 ---
+          { name: '木吉他', category: '音樂' },
+          { name: '電吉他', category: '音樂' },
+          { name: '烏克麗麗', category: '音樂' },
+          { name: '鋼琴', category: '音樂' },
+          { name: '流行歌唱', category: '音樂' },
+          { name: '混音/編曲', category: '音樂' },
+          { name: '素描/水彩', category: '藝術' },
+          { name: '電繪 (Procreate/PS)', category: '藝術' },
+          { name: '攝影', category: '藝術' },
+          { name: '影片剪輯 (Premiere/Final Cut)', category: '藝術' },
+
+          // --- 運動與健康 ---
+          { name: '籃球', category: '運動' },
+          { name: '羽球', category: '運動' },
+          { name: '排球', category: '運動' },
+          { name: '網球', category: '運動' },
+          { name: '重訓/健身', category: '運動' },
+          { name: '瑜珈', category: '運動' },
+          { name: '跑步', category: '運動' },
+          { name: '滑板', category: '運動' },
+
+          // --- 生活與其他 ---
+          { name: '投資理財', category: '生活' },
+          { name: '烹飪/烘焙', category: '生活' },
+          { name: '塔羅牌/占卜', category: '生活' },
+          { name: '桌遊/狼人殺', category: '生活' },
+          { name: '電競 (LoL/Valorant)', category: '生活' }
         ];
         fullSkillList.forEach(s => stmt.run(s.name, s.category));
         stmt.finalize();
