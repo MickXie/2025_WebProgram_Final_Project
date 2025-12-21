@@ -442,6 +442,7 @@ const styles = {
     height: 'calc(100vh - 80px)',
     maxWidth: '1200px',
     margin: '0 auto',
+    marginTop: '24px', 
     border: '1px solid #ddd',
     borderRadius: '10px',
     overflow: 'hidden',

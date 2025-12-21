@@ -80,7 +80,7 @@ function Login() {
   };
 
   return (
-    <div className="flex min-h-screen items-start justify-center bg-white px-4 pt-24 text-[#334155]">
+    <div className="flex min-h-screen items-start justify-center bg-slate-50 px-4 pt-24 text-[#334155]">
       <MagicCard
         className="
           w-full max-w-md
@@ -163,19 +163,22 @@ function Login() {
               <button
                 type="submit"
                 onClick={() => setIsRegistering(false)}
-                className="
+                className={`
                   inline-flex items-center justify-center
                   rounded-md
-                  bg-neutral-900
                   py-2.5
-                  text-sm font-medium text-white
+                  text-sm font-medium
                   transition
-                  hover:bg-neutral-800
                   active:scale-[0.98]
                   focus-visible:outline-none
                   focus-visible:ring-2
                   focus-visible:ring-slate-400/50
-                "
+                  ${
+                    !isRegistering
+                      ? "bg-slate-900 text-white hover:bg-slate-800"
+                      : "bg-white text-slate-500 border border-slate-300 hover:text-slate-700"
+                  }
+                `}
               >
                 登入
               </button>
@@ -184,25 +187,27 @@ function Login() {
               <button
                 type="submit"
                 onClick={() => setIsRegistering(true)}
-                className="
+                className={`
                   inline-flex items-center justify-center
                   rounded-md
-                  border border-slate-400
-                  bg-white
                   py-2.5
-                  text-sm font-medium text-slate-700
+                  text-sm font-medium
                   transition
-                  hover:bg-neutral-900
-                  hover:text-white
                   active:scale-[0.98]
                   focus-visible:outline-none
                   focus-visible:ring-2
                   focus-visible:ring-slate-400/50
-                "
+                  ${
+                    isRegistering
+                      ? "bg-slate-900 text-white hover:bg-slate-800"
+                      : "bg-white text-slate-500 border border-slate-300 hover:text-slate-700"
+                  }
+                `}
               >
                 註冊
               </button>
             </div>
+
           </form>
 
           {/* Message */}

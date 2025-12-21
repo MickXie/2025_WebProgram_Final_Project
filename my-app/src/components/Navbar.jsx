@@ -56,6 +56,7 @@ export default function Navbar() {
     padding: '1rem 2rem',
     backgroundColor: '#ffffff', // 純白背景
     boxShadow: '0 2px 10px rgba(0,0,0,0.05)', // 極輕微的陰影提升質感
+    borderBottom: '1px solid rgba(15, 23, 42, 0.08)', // ← 高級細底線
     position: 'sticky',
     top: 0,
     zIndex: 1000,
