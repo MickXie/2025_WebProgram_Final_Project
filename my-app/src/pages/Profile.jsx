@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import API_URL from "../api";
 
 function Profile() {
   const [currentUserId, setCurrentUserId] = useState(null);
-  const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:3001' : '';
   const navigate = useNavigate();
 
   // --- 狀態管理 ---

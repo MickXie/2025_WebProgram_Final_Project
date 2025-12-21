@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MagicCard } from "@/components/ui/magic-card";
+import API_URL from "../api";
 
 function Login() {
   const [studentId, setStudentId] = useState("");
@@ -25,14 +26,6 @@ function Login() {
       }
     }
   }, [navigate]);
-
-  // ===============================
-  // API 位址（本地 / Render）
-  // ===============================
-  const API_URL =
-    window.location.hostname === "localhost"
-      ? "http://localhost:3001"
-      : "";
 
   // ===============================
   // Submit（登入 / 註冊）

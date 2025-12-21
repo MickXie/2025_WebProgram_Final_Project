@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MatchOverlay from '../components/MatchOverlay'; // 引入剛剛的動畫組件
+import API_URL from "../api";
 
 function Match() {
   // --- State 定義 ---
@@ -18,8 +19,6 @@ function Match() {
   const audioRef = useRef(null);
 
   const navigate = useNavigate();
-  // 自動切換 API 網址
-  const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:3001' : '';
 
   // --- 1. 頁面生命週期管理：離開頁面時停止音效 ---
   useEffect(() => {

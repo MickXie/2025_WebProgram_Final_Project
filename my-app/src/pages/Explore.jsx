@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
+import API_URL from "../api";
 function Explore() {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
 
   const navigate = useNavigate();
-  const API_URL = window.location.hostname === 'localhost'
-    ? 'http://localhost:3001'
-    : '';
 
   /* =====================
      抓取使用者列表（原本功能保留）

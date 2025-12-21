@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import API_URL from "../api";
 
 function Chat() {
   const [friends, setFriends] = useState([]);
@@ -15,7 +16,6 @@ function Chat() {
 
   const messagesEndRef = useRef(null);
   const navigate = useNavigate();
-  const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:3001' : '';
 
   /* =====================
      初始化：驗證 + 抓資料
