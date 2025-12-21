@@ -4,9 +4,12 @@ import { Meteors } from "@/components/ui/meteors";
 export default function Home() {
   return (
     <main className="h-screen w-full overflow-y-auto overflow-x-hidden snap-y snap-mandatory scroll-smooth no-scrollbar bg-white">
+      {/* ======================================================
+          HERO SECTION
+         ====================================================== */}
       <section className="relative snap-start min-h-screen w-full overflow-hidden">
 
-        {/* Meteors：放在文字「上方」 */}
+        {/* Meteors: Visual Effect */}
         <div className="pointer-events-none absolute inset-0 z-20 w-full overflow-hidden">
           <Meteors
             number={30}
@@ -24,23 +27,24 @@ export default function Home() {
           />
         </div>
 
-        {/* 淡光暈（在流星下面一層） */}
+        {/* Radial Gradient Background */}
         <div className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_top,rgba(148,163,184,0.12),transparent_60%)]" />
 
-        {/* 文字內容：不要用實心遮擋 */}
-        <div className="relative z-30 page-container flex min-h-screen flex-col items-center justify-center text-center">
+        {/* Content Container */}
+        <div className="relative z-30 page-container flex min-h-screen flex-col items-center justify-center text-center px-4">
 
-          <p className="mb-4 tracking-widest text-slate-500 text-sm">
-            SKILLSWAP PLATFORM
+          {/* Tagline / Project Name */}
+          <p className="mb-4 tracking-widest text-slate-500 text-sm font-medium uppercase">
+            learning Platform
           </p>
 
-          {/* ⭐ 關鍵：文字改成可「透過」 */}
+          {/* Main Heading: Brain Barter */}
           <h1
             className="
               mb-6
-              font-semibold
+              font-extrabold
               leading-tight
-              text-[clamp(2.6rem,5vw,4.2rem)]
+              text-[clamp(3rem,6vw,5rem)]
               bg-gradient-to-b
               from-slate-900
               via-slate-700
@@ -49,47 +53,59 @@ export default function Home() {
               text-transparent
             "
           >
-            讓學習不再孤單
-            <br />
-            <span className="opacity-80 text-slate-700">
-              讓專長找到真正的價值
-            </span>
-
+            Brain Barter
           </h1>
 
-          <p className="mb-12 max-w-2xl leading-relaxed text-slate-500">
-            透過興趣標籤與技能配對，在安全的環境中找到你的學習夥伴，
-            讓知識交換變得自然且有溫度。
+          {/* Slogan */}
+          <h2 className="mb-8 text-2xl font-semibold text-slate-700 sm:text-3xl">
+            Trade what you know for what you need.
+          </h2>
+
+          {/* Description (No currency metaphor, pure connection) */}
+          <p className="mb-12 max-w-2xl leading-relaxed text-slate-500 text-lg">
+            Stop learning alone. Connect with peers to exchange skills, 
+            bridge knowledge gaps, and grow together in a trusted environment. 
+            Real people, real skills, pure exchange.
           </p>
 
+          {/* CTA Button */}
           <Link to="/explore">
-            <button className="rounded-md bg-blue-600 px-8 py-4 text-white transition hover:bg-blue-700">
-              開始探索 →
+            <button className="rounded-full bg-slate-900 px-10 py-4 text-white font-medium transition-all hover:bg-slate-700 hover:shadow-lg hover:-translate-y-1">
+              Start Exploring →
             </button>
           </Link>
         </div>
       </section>
 
       {/* ======================================================
-         ABOUT — 滿版區塊 + 中央欄位
+          ABOUT SECTION
          ====================================================== */}
-      <section className="snap-start min-h-screen w-full bg-white">
-        <div className="page-container flex min-h-screen items-center">
-          <div className="grid w-full gap-16 md:grid-cols-2">
-            <div>
-              <h2 className="mb-10 font-semibold text-slate-900 text-[clamp(1.8rem,3.5vw,2.6rem)]">
-                關於技能交換平台
+      <section className="snap-start min-h-screen w-full bg-slate-50">
+        <div className="page-container flex min-h-screen items-center px-6">
+          <div className="grid w-full gap-16 md:grid-cols-2 items-center">
+            
+            {/* Text Content */}
+            <div className="text-left">
+              <h2 className="mb-8 font-bold text-slate-900 text-[clamp(2rem,4vw,3rem)]">
+                About The Platform
               </h2>
 
-              <p className="leading-relaxed text-slate-600 text-[clamp(1rem,1.6vw,1.15rem)]">
-                本平台以「技能交換」為核心，讓使用者依據興趣、技能與背景進行配對，
-                打造一個重視信任、互助與成長的學習社群。
+              <p className="mb-6 leading-relaxed text-slate-600 text-lg">
+                <strong>Brain Barter</strong> is built on the core philosophy of 
+                mutual learning. We match users based on their interests, skills, 
+                and proficiency levels (High, Mid, Low).
+              </p>
+              
+              <p className="leading-relaxed text-slate-600 text-lg">
+                Our goal is to create a community that values trust and growth, 
+                transforming solitary studying into a collaborative journey.
               </p>
             </div>
 
+            {/* Image / UI Placeholder */}
             <div className="flex items-center justify-center">
-              <div className="h-[420px] w-full rounded-xl border border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-slate-400">
-                圖片 / UI 展示區
+              <div className="h-[420px] w-full rounded-2xl border-2 border-dashed border-slate-300 bg-white flex items-center justify-center text-slate-400 shadow-sm">
+                Project UI / Demo Image
               </div>
             </div>
           </div>
@@ -97,65 +113,70 @@ export default function Home() {
       </section>
 
       {/* ======================================================
-         FOOTER — 原神風（滿版深色）
+          FOOTER
          ====================================================== */}
-      <footer className="snap-start w-full bg-[#0b0f16]">
-        <div className="page-container py-14">
-          <div className="grid gap-10 md:grid-cols-4">
+      <footer className="snap-start w-full bg-[#0b0f16] text-white">
+        <div className="page-container py-20 px-6">
+          <div className="grid gap-12 md:grid-cols-4">
 
-            {/* 品牌說明 */}
-            <div>
-              <div className="text-white font-semibold text-lg">
-                SkillSwap
+            {/* Brand Column */}
+            <div className="md:col-span-1">
+              <div className="font-bold text-2xl tracking-tight mb-4">
+                Brain Barter
               </div>
-              <p className="mt-3 text-slate-400 text-sm leading-relaxed">
-                以技能交換連結彼此，讓學習更安全、更有效、更有溫度。
+              <p className="text-slate-400 text-sm leading-relaxed">
+                Connecting students through skill exchange. 
+                Making learning collaborative, effective, and meaningful.
               </p>
             </div>
 
-            {/* 導覽 */}
+            {/* Navigation Column */}
             <div>
-              <div className="text-slate-200 font-medium mb-3">導覽</div>
-              <ul className="space-y-2 text-slate-400 text-sm">
+              <div className="text-slate-200 font-semibold mb-4">Navigation</div>
+              <ul className="space-y-3 text-slate-400 text-sm">
                 <li>
-                  <Link to="/" className="hover:text-white">首頁</Link>
+                  <Link to="/" className="hover:text-white transition-colors">Home</Link>
                 </li>
                 <li>
-                  <Link to="/explore" className="hover:text-white">探索</Link>
+                  <Link to="/explore" className="hover:text-white transition-colors">Explore</Link>
                 </li>
                 <li>
-                  <Link to="/match" className="hover:text-white">配對</Link>
+                  <Link to="/match" className="hover:text-white transition-colors">Match</Link>
                 </li>
               </ul>
             </div>
 
-            {/* 我們的團隊 */}
+            {/* Team Column (Translating Roles) */}
             <div className="md:col-span-2">
-              <div className="text-slate-200 font-medium mb-3">我們的團隊</div>
-              <ul className="space-y-2 text-slate-400 text-sm">
+              <div className="text-slate-200 font-semibold mb-4">Our Team</div>
+              <ul className="space-y-3 text-slate-400 text-sm">
                 <li>
-                  <span className="text-slate-300 font-medium">
+                  <span className="text-slate-300 font-medium block mb-1">
                     01357043 謝侑均
-                  </span>{" "}
-                  — 前端介面、UI / UX 設計
+                  </span>
+                  <span className="text-slate-500">
+                    Frontend Interface, UI / UX Design
+                  </span>
                 </li>
                 <li>
-                  <span className="text-slate-300 font-medium">
+                  <span className="text-slate-300 font-medium block mb-1">
                     01357031 顏家駿
-                  </span>{" "}
-                  — 後端開發、演算法設計
+                  </span>
+                  <span className="text-slate-500">
+                    Backend Development, Algorithm Design
+                  </span>
                 </li>
               </ul>
             </div>
 
           </div>
 
-          {/* 底線 */}
-          <div className="mt-10 border-t border-white/10 pt-6 flex flex-col gap-2 md:flex-row md:justify-between">
-            <p className="text-slate-500 text-sm">
-              © 2025 SkillSwap · Web Programming Final Project
+          {/* Copyright Row */}
+          <div className="mt-16 border-t border-white/10 pt-8 flex flex-col gap-4 md:flex-row md:justify-between items-center text-xs text-slate-500">
+            <p>
+              © 2025 Brain Barter · Web Programming Final Project
             </p>
-            <p className="text-slate-500 text-sm">
+            <p>
               National Taiwan Ocean University
             </p>
           </div>
