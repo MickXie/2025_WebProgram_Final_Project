@@ -23,7 +23,6 @@ export default function Navbar() {
     if (now - loginTime < FOUR_HOURS) {
       setLoggedIn(true);
     } else {
-      // 過期自動清除
       localStorage.removeItem("loginToken");
       localStorage.removeItem("loginTimestamp");
       localStorage.removeItem("user");
@@ -32,13 +31,8 @@ export default function Navbar() {
   };
 
   useEffect(() => {
-    // 初始檢查
     checkLogin();
-
-    // ✅ 同分頁登入 / 登出（Login.jsx 會 dispatch）
     window.addEventListener("auth-changed", checkLogin);
-
-    // ✅ 不同分頁同步
     window.addEventListener("storage", checkLogin);
 
     return () => {
@@ -50,44 +44,115 @@ export default function Navbar() {
   // 🚪 登出
   const handleLogout = () => {
     localStorage.clear();
-
-    // 🔔 通知 Navbar / 其他元件
     window.dispatchEvent(new Event("auth-changed"));
-
     navigate("/login");
   };
 
-  return (
-    <nav>
-      <div className="logo">SkillSwap</div>
+  // --- 樣式定義 (高級灰/黑白主題) ---
+  const navStyle = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '1rem 2rem',
+    backgroundColor: '#ffffff', // 純白背景
+    boxShadow: '0 2px 10px rgba(0,0,0,0.05)', // 極輕微的陰影提升質感
+    position: 'sticky',
+    top: 0,
+    zIndex: 1000,
+  };
 
-      <ul>
+  const logoStyle = {
+    fontSize: '1.5rem',
+    fontWeight: '800',
+    color: '#0f172a', // Slate-900 深黑色
+    letterSpacing: '-0.5px',
+    textDecoration: 'none',
+  };
+
+  const ulStyle = {
+    display: 'flex',
+    listStyle: 'none',
+    gap: '2rem', // 選項之間的間距
+    alignItems: 'center',
+    margin: 0,
+    padding: 0,
+  };
+
+  // 連結樣式生成函數 (處理 Active 狀態)
+  const getLinkStyle = ({ isActive }) => ({
+    textDecoration: 'none', // 🚫 移除底線
+    color: isActive ? '#0f172a' : '#64748b', // Active: 深黑 / Inactive: 岩灰
+    fontWeight: isActive ? '700' : '500', // Active 時加粗
+    fontSize: '1rem',
+    transition: 'color 0.2s ease',
+  });
+
+  const logoutBtnStyle = {
+    padding: '8px 24px',
+    borderRadius: '50px', // 🟢 橢圓形
+    border: 'none',
+    backgroundColor: '#334155', // Slate-700 高級深灰
+    color: '#ffffff', // 白色文字
+    fontSize: '0.9rem',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
+  };
+
+  return (
+    <nav style={navStyle}>
+      {/* Logo */}
+      <div style={logoStyle}>Brain Barter</div>
+
+      <ul style={ulStyle}>
         {/* 永遠可見 */}
-        <li><NavLink to="/" end>首頁</NavLink></li>
+        <li>
+          <NavLink to="/" end style={getLinkStyle}>
+            Home
+          </NavLink>
+        </li>
 
         {/* 未登入 */}
         {!loggedIn && (
-          <li><NavLink to="/login">登入 / 註冊</NavLink></li>
+          <li>
+            <NavLink to="/login" style={getLinkStyle}>
+              Login / Register
+            </NavLink>
+          </li>
         )}
 
         {/* 已登入 */}
         {loggedIn && (
           <>
-            <li><NavLink to="/explore">探索</NavLink></li>
-            <li><NavLink to="/match">配對</NavLink></li>
-            <li><NavLink to="/chat">聊天室</NavLink></li>
-            <li><NavLink to="/profile">我的檔案</NavLink></li>
+            <li>
+              <NavLink to="/explore" style={getLinkStyle}>
+                Explore
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/match" style={getLinkStyle}>
+                Match
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/chat" style={getLinkStyle}>
+                Chat
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/profile" style={getLinkStyle}>
+                Profile
+              </NavLink>
+            </li>
             <li>
               <button
                 onClick={handleLogout}
-                style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  color: "red"
-                }}
+                style={logoutBtnStyle}
+                onMouseOver={(e) => e.target.style.backgroundColor = '#0f172a'} // Hover 變更黑
+                onMouseOut={(e) => e.target.style.backgroundColor = '#334155'}
               >
-                登出
+                Logout
               </button>
             </li>
           </>
