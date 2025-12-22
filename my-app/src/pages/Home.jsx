@@ -113,9 +113,58 @@ export default function Home() {
                 <p className="leading-relaxed text-slate-600 text-lg">
                   Our goal is to create a community that values trust and growth, 
                   transforming solitary studying into a collaborative journey.
-                </p>
-              </div>
+              </p>
+              {/* Project Links */}
+                <div className="mt-8 flex items-center gap-6 text-slate-500">
 
+                  {/* Project Slides */}
+                  <a
+                    href="https://www.canva.com/design/DAG8KnboN-8/o7b_IT24woq4nuf4f5Jyrw/edit"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex items-center gap-2 transition-colors hover:text-slate-900"
+                  >
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 bg-white transition-all group-hover:border-slate-900">
+                      {/* PPT / Slides Icon */}
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        className="h-5 w-5"
+                      >
+                        <path d="M4 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6h-2v6H4V4h6V2H4z" />
+                        <path d="M14 2v6h6" />
+                        <path d="M13 13h8v-2h-8v2zm0 4h8v-2h-8v2z" />
+                      </svg>
+                    </span>
+                    <span className="text-sm font-medium">Project Slides</span>
+                  </a>
+
+                  {/* GitHub */}
+                  <a
+                    href="https://github.com/MickXie/2025_WebProgram_Final_Project.git"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex items-center gap-2 transition-colors hover:text-slate-900"
+                  >
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 bg-white transition-all group-hover:border-slate-900">
+                      {/* GitHub Icon */}
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        className="h-5 w-5"
+                      >
+                        <path d="M12 .5C5.65.5.5 5.82.5 12.38c0 5.25 3.44 9.7 8.21 11.27.6.11.82-.27.82-.59v-2.24c-3.34.75-4.04-1.64-4.04-1.64-.55-1.43-1.35-1.81-1.35-1.81-1.1-.77.08-.75.08-.75 1.22.09 1.86 1.29 1.86 1.29 1.08 1.9 2.83 1.35 3.52 1.03.11-.81.42-1.35.76-1.66-2.66-.31-5.46-1.37-5.46-6.09 0-1.35.47-2.45 1.24-3.31-.13-.31-.54-1.55.12-3.23 0 0 1.01-.33 3.3 1.26a11.2 11.2 0 0 1 6 0c2.28-1.59 3.29-1.26 3.29-1.26.66 1.68.25 2.92.12 3.23.77.86 1.24 1.96 1.24 3.31 0 4.74-2.8 5.77-5.47 6.08.43.38.81 1.12.81 2.26v3.35c0 .33.22.71.83.59 4.77-1.57 8.2-6.02 8.2-11.27C23.5 5.82 18.35.5 12 .5z" />
+                      </svg>
+                    </span>
+                    <span className="text-sm font-medium">GitHub</span>
+                  </a>
+
+                </div>
+
+              </div>
+              
               {/* Image / UI Placeholder */}
               <div className="flex items-center justify-center">
                 <div
