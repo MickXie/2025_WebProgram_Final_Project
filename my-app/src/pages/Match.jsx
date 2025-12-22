@@ -166,7 +166,7 @@ function Match() {
       }
 
       // 建立新音效 (請確認檔案路徑正確)
-      const audio = new Audio('/public/match-sound.mp3');
+      const audio = new Audio('/match-sound.mp3');
       audio.volume = 0.8; // 音量 80%
       audioRef.current = audio; // 存入 Ref
 
