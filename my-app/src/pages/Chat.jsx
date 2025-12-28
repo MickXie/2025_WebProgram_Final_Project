@@ -9,30 +9,21 @@ function Chat() {
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [currentUserId, setCurrentUserId] = useState(null);
-
-  // ✅ 檔案上傳相關 State
   const [selectedFile, setSelectedFile] = useState(null);
   const fileInputRef = useRef(null);
-
   const messagesEndRef = useRef(null);
   const navigate = useNavigate();
-
-  /* =====================
-     初始化：驗證 + 抓資料
-     ===================== */
   useEffect(() => {
     const token = localStorage.getItem('loginToken');
     if (!token) {
       navigate('/login');
       return;
     }
-
     fetch(`${API_URL}/api/me`, { headers: { Authorization: token } })
       .then(res => res.json())
       .then(data => {
         if (!data.user) return;
         setCurrentUserId(data.user.id);
-
         return fetch(`${API_URL}/api/my-friends`, {
           headers: { Authorization: token }
         });
@@ -51,10 +42,6 @@ function Chat() {
       })
       .catch(err => console.error('初始化錯誤', err));
   }, [API_URL, navigate]);
-
-  /* =====================
-     ⭐ 輪巡好友邀請
-     ===================== */
   useEffect(() => {
     const token = localStorage.getItem('loginToken');
     if (!token) return;
@@ -76,14 +63,9 @@ function Chat() {
     const timer = setInterval(fetchInvites, 5000);
     return () => clearInterval(timer);
   }, [API_URL]);
-
-  /* =====================
-     ⭐ 輪巡好友列表
-     ===================== */
   useEffect(() => {
     const token = localStorage.getItem('loginToken');
     if (!token) return;
-
     const fetchFriends = () => {
       fetch(`${API_URL}/api/my-friends`, {
         headers: { Authorization: token }
@@ -101,10 +83,6 @@ function Chat() {
     const timer = setInterval(fetchFriends, 8000);
     return () => clearInterval(timer);
   }, [API_URL]);
-
-  /* =====================
-     Polling 抓聊天訊息
-     ===================== */
   useEffect(() => {
     if (!selectedFriend || !currentUserId) return;
     const token = localStorage.getItem('loginToken');
@@ -126,10 +104,6 @@ function Chat() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-
-  /* =====================
-     發送訊息
-     ===================== */
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if ((!inputText.trim() && !selectedFile) || !selectedFriend) return;
@@ -141,10 +115,8 @@ function Chat() {
         return;
       }
     }
-
     let uploadedFileUrl = null;
     let uploadedFileType = null;
-
     if (selectedFile) {
         const formData = new FormData();
         formData.append('file', selectedFile);
@@ -175,8 +147,6 @@ function Chat() {
       fileUrl: uploadedFileUrl,
       fileType: uploadedFileType
     };
-
-    // Optimistic UI Update
     setMessages([
       ...messages,
       {
@@ -250,10 +220,7 @@ function Chat() {
 
   return (
     <div style={styles.container}>
-      {/* Sidebar - 側邊欄 */}
       <div style={styles.sidebar}>
-        
-        {/* 好友列表區 */}
         <div style={styles.friendListContainer}>
           <div style={styles.sidebarHeader}>
             Messaging
@@ -302,13 +269,10 @@ function Chat() {
               >
                 <img src={friend.avatar_url} alt="" style={styles.avatar} />
                 <span style={styles.friendName}>{friend.name}</span>
-                {/* ❌ 已移除：綠色假狀態燈 */}
               </div>
             ))}
           </div>
         </div>
-
-        {/* 學習資料整合區 (調整為更乾淨的卡片風格) */}
         <div style={styles.filesSection}>
             <h4 style={styles.filesHeader}>Shared Content</h4>
             {selectedFriend ? (
@@ -337,10 +301,7 @@ function Chat() {
                 <div style={styles.emptyFilesState}>Select a chat</div>
             )}
         </div>
-
       </div>
-
-      {/* Chat Area - 聊天主畫面 */}
       <div style={styles.chatArea}>
         {selectedFriend ? (
           <>
@@ -349,7 +310,6 @@ function Chat() {
                 <img src={selectedFriend.avatar_url} alt="" style={styles.avatarSmall} />
                 <div>
                     <h3 style={styles.chatTitle}>{selectedFriend.name}</h3>
-                    {/* ❌ 修改：移除 Active now，只在 Pending 時顯示狀態 */}
                     {selectedFriend.status === 'pending' && (
                        <span style={styles.statusText}>Pending Request</span>
                     )}
@@ -373,9 +333,7 @@ function Chat() {
                  const isMe = m.sender_id === currentUserId;
                  return (
                   <div key={i} style={{ ...styles.messageRow, justifyContent: isMe ? 'flex-end' : 'flex-start' }}>
-                    {/* 如果是對方，顯示小頭像在訊息旁 */}
                     {!isMe && <img src={selectedFriend.avatar_url} style={styles.msgAvatar} alt=""/>}
-                    
                     <div style={isMe ? styles.myBubble : styles.theirBubble}>
                       {m.file_url && (
                           <div style={{ marginBottom: m.content ? '8px' : '0' }}>
@@ -398,8 +356,6 @@ function Chat() {
 
             <form onSubmit={handleSendMessage} style={styles.inputArea}>
               <input type="file" ref={fileInputRef} style={{ display: 'none' }} onChange={(e) => setSelectedFile(e.target.files[0])} />
-              
-              {/* 迴紋針按鈕 */}
               <button 
                 type="button" 
                 onClick={() => fileInputRef.current.click()} 
@@ -408,7 +364,6 @@ function Chat() {
               >
                 📎
               </button>
-
               <div style={styles.inputWrapper}>
                   {selectedFile && (
                       <div style={styles.filePreviewChip}>
@@ -445,28 +400,22 @@ function Chat() {
     </div>
   );
 }
-
-/* =====================
-   ✨ 高級灰與質感 CSS (JSS)
-   ===================== */
 const styles = {
   container: {
     display: 'flex',
     height: '85vh',
-    maxWidth: '1100px', // 稍微縮窄一點，增加精緻感
+    maxWidth: '1100px', 
     margin: '30px auto',
-    backgroundColor: '#fff', // 純白基底
-    borderRadius: '24px', // 更圓潤的邊角
-    boxShadow: '0 20px 60px rgba(0,0,0,0.08)', // 擴散的大陰影，營造懸浮感
+    backgroundColor: '#fff', 
+    borderRadius: '24px', 
+    boxShadow: '0 20px 60px rgba(0,0,0,0.08)', 
     overflow: 'hidden',
-    fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', // 現代字體
+    fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', 
   },
-  
-  /* --- Sidebar --- */
   sidebar: {
     width: '320px',
-    backgroundColor: '#fafafa', // 側邊欄使用極淺灰
-    borderRight: '1px solid rgba(0,0,0,0.04)', // 幾乎看不見的邊框
+    backgroundColor: '#fafafa', 
+    borderRight: '1px solid rgba(0,0,0,0.04)', 
     display: 'flex',
     flexDirection: 'column',
   },
@@ -480,7 +429,7 @@ const styles = {
   friendListContainer: {
     flex: 1,
     overflowY: 'auto',
-    padding: '0 10px', // 兩側留白
+    padding: '0 10px', 
   },
   sectionTitle: {
     padding: '15px 10px 5px 10px',
@@ -493,7 +442,7 @@ const styles = {
   friendList: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '4px' // 項目間距
+    gap: '4px' 
   },
   friendItem: {
     display: 'flex',
@@ -505,7 +454,6 @@ const styles = {
     color: '#555',
     position: 'relative'
   },
-  // 當好友被選中時的樣式：像是一張浮起來的白卡片
   activeFriendItem: {
     backgroundColor: '#fff',
     boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
@@ -520,12 +468,11 @@ const styles = {
   avatar: {
     width: '40px',
     height: '40px',
-    borderRadius: '14px', // 方圓形頭像 (Squircle) 比較現代
+    borderRadius: '14px', 
     marginRight: '12px',
     objectFit: 'cover',
     boxShadow: '0 2px 5px rgba(0,0,0,0.05)'
   },
-  // ❌ 已移除：onlineIndicator 樣式
   badge: {
     backgroundColor: '#ff4757',
     color: '#fff',
@@ -544,10 +491,8 @@ const styles = {
     fontSize: '1rem',
     padding: '0 5px'
   },
-
-  /* --- 檔案區 (Gallery Style) --- */
   filesSection: {
-    height: '180px', // 固定高度
+    height: '180px', 
     borderTop: '1px solid rgba(0,0,0,0.05)',
     backgroundColor: '#fafafa',
     padding: '15px 20px',
@@ -565,7 +510,7 @@ const styles = {
   fileGrid: {
     display: 'flex',
     gap: '10px',
-    overflowX: 'auto', // 改為橫向捲動
+    overflowX: 'auto', 
     overflowY: 'hidden',
     paddingBottom: '5px',
     alignItems: 'center'
@@ -612,8 +557,6 @@ const styles = {
     marginTop: '10px',
     fontStyle: 'italic'
   },
-
-  /* --- Chat Main Area --- */
   chatArea: {
     flex: 1,
     display: 'flex',
@@ -651,18 +594,16 @@ const styles = {
     opacity: 0.6,
     transition: 'opacity 0.2s'
   },
-
-  /* --- Messages --- */
   messagesBox: {
     flex: 1,
     padding: '20px 30px',
     overflowY: 'auto',
-    backgroundColor: '#fff', // 純白背景
+    backgroundColor: '#fff', 
   },
   messageRow: {
     display: 'flex',
-    marginBottom: '18px', // 增加間距
-    alignItems: 'flex-end' // 底部對齊
+    marginBottom: '18px', 
+    alignItems: 'flex-end' 
   },
   msgAvatar: {
     width: '28px',
@@ -671,18 +612,16 @@ const styles = {
     marginRight: '8px',
     marginBottom: '4px'
   },
-  // 我的訊息氣泡：高級深灰漸層
   myBubble: {
     padding: '12px 18px',
-    borderRadius: '18px 18px 4px 18px', // 不對稱圓角
-    background: 'linear-gradient(135deg, #444, #2c2c2c)', // 深炭灰漸層
+    borderRadius: '18px 18px 4px 18px', 
+    background: 'linear-gradient(135deg, #444, #2c2c2c)',
     color: '#fff',
     maxWidth: '65%',
     fontSize: '0.95rem',
-    boxShadow: '0 4px 10px rgba(44, 44, 44, 0.2)', // 質感陰影
+    boxShadow: '0 4px 10px rgba(44, 44, 44, 0.2)',
     lineHeight: '1.5'
   },
-  // 對方訊息氣泡：白色 + 輕微邊框
   theirBubble: {
     padding: '12px 18px',
     borderRadius: '18px 18px 18px 4px',
@@ -701,8 +640,6 @@ const styles = {
   },
   linkWhite: { color: '#fff', textDecoration: 'underline', fontSize: '0.9rem' },
   linkBlack: { color: '#333', textDecoration: 'underline', fontSize: '0.9rem' },
-
-  /* --- Input Area --- */
   inputArea: {
     padding: '20px 30px',
     borderTop: '1px solid rgba(0,0,0,0.04)',
@@ -727,7 +664,7 @@ const styles = {
   },
   inputWrapper: {
     flex: 1,
-    backgroundColor: '#f5f7f9', // 淺灰輸入底色
+    backgroundColor: '#f5f7f9', 
     borderRadius: '24px',
     padding: '4px 15px',
     display: 'flex',
@@ -762,7 +699,7 @@ const styles = {
     height: '44px',
     borderRadius: '50%',
     border: 'none',
-    background: '#222', // 全黑按鈕
+    background: '#222',
     color: '#fff',
     cursor: 'pointer',
     display: 'flex',
@@ -772,8 +709,6 @@ const styles = {
     boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
     transition: 'transform 0.1s'
   },
-  
-  /* --- Empty States --- */
   emptyState: {
     display: 'flex',
     flexDirection: 'column',
@@ -788,7 +723,7 @@ const styles = {
     opacity: 0.5
   },
   pendingTip: {
-    backgroundColor: '#fffcf0', // 極淡的黃
+    backgroundColor: '#fffcf0', 
     color: '#bfa15f',
     padding: '10px 15px',
     textAlign: 'center',
@@ -796,5 +731,4 @@ const styles = {
     borderBottom: '1px solid #f5ebd6'
   }
 };
-
 export default Chat;

@@ -6,7 +6,6 @@ const MatchOverlay = ({ currentUser, matchedUser, onClose }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // 🎵 這裡播放你的 Valorant 音效
     // const audio = new Audio('/sounds/match-found.mp3');
     // audio.volume = 0.5;
     // audio.play().catch(e => console.log("Audio play failed", e));
@@ -27,8 +26,6 @@ const MatchOverlay = ({ currentUser, matchedUser, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/95 backdrop-blur-md overflow-hidden">
-      
-      {/* 內嵌動畫樣式：模擬 Valorant 的重擊感 */}
       <style>{`
         /* 1. 標題重擊進場 (配合 DUN! 音效) */
         @keyframes slamIn {
@@ -68,8 +65,6 @@ const MatchOverlay = ({ currentUser, matchedUser, onClose }) => {
           100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
         }
       `}</style>
-
-      {/* 背景裝飾線條 (選用) */}
       <div className="absolute inset-0 opacity-10 pointer-events-none" 
            style={{ 
              backgroundImage: 'linear-gradient(45deg, #333 25%, transparent 25%, transparent 50%, #333 50%, #333 75%, transparent 75%, transparent)', 
@@ -77,12 +72,8 @@ const MatchOverlay = ({ currentUser, matchedUser, onClose }) => {
              animation: 'slideBg 20s linear infinite'
            }}>
       </div>
-
       <div className="relative z-10 flex w-full max-w-4xl flex-col items-center px-4 text-center">
-        
-        {/* --- 標題區：巨大、斜體、衝擊感 --- */}
         <div className="anim-slam mb-16 relative">
-            {/* 裝飾用的背景大字 (Ghost Text) */}
             <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-8xl font-black italic text-white/5 whitespace-nowrap select-none scale-150">
                 MATCH FOUND
             </span>
@@ -95,11 +86,7 @@ const MatchOverlay = ({ currentUser, matchedUser, onClose }) => {
                 Skill Exchange Protocol Initiated
             </p>
         </div>
-
-        {/* --- 對戰卡片區 --- */}
         <div className="flex w-full items-center justify-center gap-4 sm:gap-12 mb-16">
-          
-          {/* 左邊：我 (卡片風格) */}
           <div className="anim-card-l flex flex-col items-center">
             <div className="relative mb-4">
                <div className="h-28 w-28 sm:h-36 sm:w-36 overflow-hidden border-4 border-slate-500 bg-slate-800 rotate-3 transition-transform hover:rotate-0 duration-300">
@@ -109,15 +96,12 @@ const MatchOverlay = ({ currentUser, matchedUser, onClose }) => {
                     className="h-full w-full object-cover opacity-90 hover:opacity-100" 
                   />
                </div>
-               {/* 裝飾角標 */}
                <div className="absolute -top-2 -left-2 w-4 h-4 border-t-2 border-l-2 border-white"></div>
                <div className="absolute -bottom-2 -right-2 w-4 h-4 border-b-2 border-r-2 border-white"></div>
             </div>
             <span className="text-xl font-bold text-white uppercase tracking-wider">{currentUser?.name || "YOU"}</span>
             <span className="text-xs text-slate-500 font-mono mt-1">READY</span>
           </div>
-
-          {/* 中間：VS / 連接符號 */}
           <div className="flex flex-col items-center justify-center mx-2">
             <div className="pulse-border rounded-full p-3 bg-white text-black">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -126,8 +110,6 @@ const MatchOverlay = ({ currentUser, matchedUser, onClose }) => {
                 </svg>
             </div>
           </div>
-
-          {/* 右邊：對方 (卡片風格) */}
           <div className="anim-card-r flex flex-col items-center">
             <div className="relative mb-4">
                <div className="h-28 w-28 sm:h-36 sm:w-36 overflow-hidden border-4 border-white bg-slate-200 -rotate-3 transition-transform hover:rotate-0 duration-300 shadow-[0_0_20px_rgba(255,255,255,0.2)]">
@@ -137,17 +119,13 @@ const MatchOverlay = ({ currentUser, matchedUser, onClose }) => {
                     className="h-full w-full object-cover" 
                   />
                </div>
-               {/* 裝飾角標 */}
                <div className="absolute -top-2 -right-2 w-4 h-4 border-t-2 border-r-2 border-white"></div>
                <div className="absolute -bottom-2 -left-2 w-4 h-4 border-b-2 border-l-2 border-white"></div>
             </div>
             <span className="text-xl font-bold text-white uppercase tracking-wider">{matchedUser?.name || "PARTNER"}</span>
             <span className="text-xs text-slate-400 font-mono mt-1">FOUND</span>
           </div>
-
         </div>
-
-        {/* --- 按鈕區 --- */}
         <div className="w-full max-w-md space-y-3 anim-card-l" style={{animationDelay: '0.4s'}}>
             <button 
                 onClick={() => navigate('/chat')}
@@ -156,14 +134,12 @@ const MatchOverlay = ({ currentUser, matchedUser, onClose }) => {
                     transition-transform active:scale-95
                 "
             >
-                {/* 斜切背景裝飾 */}
                 <div className="absolute inset-0 bg-slate-200 translate-y-full transition-transform group-hover:translate-y-0 duration-300"></div>
                 
                 <span className="relative z-10 text-xl font-black italic tracking-widest text-slate-900 group-hover:text-slate-900">
                     ACCEPT MATCH ({timeLeft})
                 </span>
             </button>
-
             <button 
                 onClick={onClose}
                 className="text-xs text-slate-500 hover:text-white uppercase tracking-widest transition-colors"

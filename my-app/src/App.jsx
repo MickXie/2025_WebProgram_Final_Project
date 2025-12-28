@@ -14,11 +14,8 @@ export default function App() {
     <>
       <Navbar />
       <Routes>
-        {/* Public Pages */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
-
-        {/* Private Pages */}
         <Route element={<PrivateLayout />}>
           <Route path="/explore" element={<Explore />} />
           <Route path="/match" element={<Match />} />

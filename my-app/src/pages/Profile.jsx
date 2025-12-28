@@ -5,26 +5,15 @@ import API_URL from "../api";
 function Profile() {
   const [currentUserId, setCurrentUserId] = useState(null);
   const navigate = useNavigate();
-
-  // --- 狀態管理 ---
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
-  
-  // 圖片相關狀態
   const [avatarUrl, setAvatarUrl] = useState(''); 
   const [selectedFile, setSelectedFile] = useState(null); 
   const [previewUrl, setPreviewUrl] = useState(''); 
-
-  // 技能相關狀態 (我擁有的)
   const [skills, setSkills] = useState([]);
-  
-  // 學習目標相關狀態 (我想學的) - 新增
   const [learningGoals, setLearningGoals] = useState([]);
-
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [statusMessage, setStatusMessage] = useState('');
-
-  // --- 1. 身分驗證與初始化 ---
   useEffect(() => {
     const checkAuth = async () => {
         const token = localStorage.getItem('loginToken');
@@ -42,18 +31,12 @@ function Profile() {
     };
     checkAuth();
   }, [navigate, API_URL]);
-
-  // 當取得 UserID 後，抓取所有清單
   useEffect(() => {
     if (currentUserId) {
         fetchSkills();
-        fetchLearningGoals(); // 新增抓取
+        fetchLearningGoals(); 
     }
   }, [currentUserId]);
-
-  // --- 2. 核心功能函式 ---
-
-  // 抓取「我擁有的技能」
   const fetchSkills = async () => {
     try {
       const res = await fetch(`${API_URL}/api/skills/${currentUserId}`);
@@ -61,8 +44,6 @@ function Profile() {
       if (res.ok) setSkills(data);
     } catch (error) { console.error("Fetch skills failed:", error); }
   };
-
-  // 抓取「我想學的技能」
   const fetchLearningGoals = async () => {
     try {
       const res = await fetch(`${API_URL}/api/learning-goals/${currentUserId}`);
@@ -70,8 +51,6 @@ function Profile() {
       if (res.ok) setLearningGoals(data);
     } catch (error) { console.error("Fetch goals failed:", error); }
   };
-
-  // 更新技能程度 (Level: 1-Low, 2-Mid, 3-High)
   const handleSkillUpdate = async (skillId, newLevel) => {
     setSkills(prev => prev.map(s => s.id === skillId ? { ...s, level: newLevel } : s));
     try {
@@ -82,8 +61,6 @@ function Profile() {
       });
     } catch (error) { console.error("Update failed", error); }
   };
-
-  // 更新學習意願度 (Level: 1-Low, 2-Mid, 3-High) - 新增
   const handleLearningUpdate = async (skillId, newLevel) => {
     setLearningGoals(prev => prev.map(g => g.id === skillId ? { ...g, level: newLevel } : g));
     try {
@@ -115,13 +92,11 @@ function Profile() {
       const res = await fetch(`${API_URL}/api/users/${currentUserId}`, { method: 'POST', body: formData });
       if (res.ok) {
         const data = await res.json();
-        setStatusMessage('✅ 個人檔案已更新！');
+        setStatusMessage('個人檔案已更新！');
         if (data.avatar_url) { setAvatarUrl(data.avatar_url); setPreviewUrl(''); setSelectedFile(null); }
-      } else { setStatusMessage('❌ 更新失敗'); }
-    } catch (error) { setStatusMessage('❌ 連線錯誤'); }
+      } else { setStatusMessage('更新失敗'); }
+    } catch (error) { setStatusMessage('連線錯誤'); }
   };
-
-  // --- 3. 視覺樣式輔助 ---
   const categories = ['All', ...new Set(skills.map(s => s.category))];
   const getLevelColor = (level) => {
     if (level === 1) return '#A8E6CF';
@@ -177,9 +152,7 @@ function Profile() {
                 </button>
             ))}
         </div>
-
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
-          {/* 左側：我擁有的技能 */}
           <div>
             <h3 style={{ borderLeft: '5px solid #4CAF50', paddingLeft: '10px' }}>我的專長 (Skills)</h3>
             <p style={{ fontSize: '0.8rem', color: '#666' }}>選擇你擅長的程度 (L/M/H)</p>
@@ -199,8 +172,6 @@ function Profile() {
               ))}
             </div>
           </div>
-
-          {/* 右側：我想學的技能 */}
           <div>
             <h3 style={{ borderLeft: '5px solid #9C27B0', paddingLeft: '10px' }}>我想學習 (Learning)</h3>
             <p style={{ fontSize: '0.8rem', color: '#666' }}>選擇你渴望學習的程度</p>
@@ -231,12 +202,10 @@ function Profile() {
   boxShadow: '0 2px 8px rgba(0,0,0,0.05)' 
 }}>
   <h4 style={{ margin: '0 0 20px 0', textAlign: 'center', color: '#555', letterSpacing: '1px' }}>
-     ✨ 個人標籤預覽
+     個人標籤預覽
   </h4>
   
   <div style={{ display: 'flex', alignItems: 'stretch', gap: '20px' }}>
-    
-    {/* 左側：專長區 */}
     <div style={{ flex: 1 }}>
       <p style={{ fontWeight: 'bold', color: '#2E7D32', marginBottom: '10px', fontSize: '0.9rem' }}>已掌握的技能</p>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -255,11 +224,7 @@ function Profile() {
         )}
       </div>
     </div>
-
-    {/* 中間分隔線 */}
     <div style={{ width: '2px', backgroundColor: '#eee', margin: '0 10px' }}></div>
-
-    {/* 右側：想學區 */}
     <div style={{ flex: 1 }}>
       <p style={{ fontWeight: 'bold', color: '#512DA8', marginBottom: '10px', fontSize: '0.9rem' }}>渴望學習的技能</p>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -281,7 +246,6 @@ function Profile() {
 
   </div>
 </div>
-
         <button type="submit" style={{ width: '100%', padding: '12px', marginTop: '20px', backgroundColor: '#333', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
           儲存個人資料
         </button>

@@ -1,20 +1,11 @@
 @import "tailwindcss";
-
-/* ================================
-   Global base
-   ================================ */
 body {
   font-family: "Arial", sans-serif;
   margin: 0;
   padding: 0;
   line-height: 1.6;
   color: #334155;
-  /* 統一主文字色 */
 }
-
-/* ================================
-   Navigation
-   ================================ */
 nav {
   background-color: #333;
   color: white;
@@ -23,7 +14,6 @@ nav {
   justify-content: space-between;
   align-items: center;
 }
-
 nav ul {
   list-style: none;
   display: flex;
@@ -31,26 +21,19 @@ nav ul {
   margin: 0;
   padding: 0;
 }
-
 nav a {
   color: white;
   text-decoration: none;
   font-weight: bold;
 }
-
 nav a:hover {
   color: #ffd700;
 }
-
 nav a.active {
   color: gold;
   font-weight: bold;
   text-decoration: underline;
 }
-
-/* ================================
-   Layout
-   ================================ */
 main {
   padding: 0;
   max-width: none;
@@ -64,10 +47,6 @@ main {
   padding-left: 1.5rem;
   padding-right: 1.5rem;
 }
-
-/* ================================
-   Card (legacy usage)
-   ================================ */
 .card,
 .form-container {
   border: 1px solid #ddd;
@@ -76,13 +55,6 @@ main {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
 }
-
-
-
-
-/* ================================
-   Blur login block
-   ================================ */
 .blur-container {
   position: relative;
 }
@@ -104,13 +76,8 @@ main {
   font-weight: bold;
   text-align: center;
 }
-
-/* ================================
-   Magic UI meteor animation
-   ================================ */
 @theme inline {
   --animate-meteor: meteor 5s linear infinite;
-
   @keyframes meteor {
     0% {
       transform: rotate(var(--angle)) translateX(0);
@@ -127,14 +94,9 @@ main {
     }
   }
 }
-
-/* ================================
-   Hide scrollbar (keep scroll)
-   ================================ */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
-
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;

@@ -6,8 +6,6 @@ const FOUR_HOURS = 4 * 60 * 60 * 1000;
 export default function Navbar() {
   const [loggedIn, setLoggedIn] = useState(false);
   const navigate = useNavigate();
-
-  // 🔐 檢查是否登入 + 是否過期
   const checkLogin = () => {
     const token = localStorage.getItem("loginToken");
     const timestamp = localStorage.getItem("loginTimestamp");
@@ -40,60 +38,52 @@ export default function Navbar() {
       window.removeEventListener("storage", checkLogin);
     };
   }, []);
-
-  // 🚪 登出
   const handleLogout = () => {
     localStorage.clear();
     window.dispatchEvent(new Event("auth-changed"));
     navigate("/login");
   };
-
-  // --- 樣式定義 (高級灰/黑白主題) ---
   const navStyle = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: '1rem 2rem',
-    backgroundColor: '#ffffff', // 純白背景
-    boxShadow: '0 2px 10px rgba(0,0,0,0.05)', // 極輕微的陰影提升質感
-    borderBottom: '1px solid rgba(15, 23, 42, 0.08)', // ← 高級細底線
+    backgroundColor: '#ffffff', 
+    boxShadow: '0 2px 10px rgba(0,0,0,0.05)', 
+    borderBottom: '1px solid rgba(15, 23, 42, 0.08)', 
     position: 'sticky',
     top: 0,
     zIndex: 1000,
   };
-
   const logoStyle = {
     fontSize: '1.5rem',
     fontWeight: '800',
-    color: '#0f172a', // Slate-900 深黑色
+    color: '#0f172a', 
     letterSpacing: '-0.5px',
     textDecoration: 'none',
   };
-
   const ulStyle = {
     display: 'flex',
     listStyle: 'none',
-    gap: '2rem', // 選項之間的間距
+    gap: '2rem', 
     alignItems: 'center',
     margin: 0,
     padding: 0,
   };
-
-  // 連結樣式生成函數 (處理 Active 狀態)
   const getLinkStyle = ({ isActive }) => ({
-    textDecoration: 'none', // 🚫 移除底線
-    color: isActive ? '#0f172a' : '#64748b', // Active: 深黑 / Inactive: 岩灰
-    fontWeight: isActive ? '700' : '500', // Active 時加粗
+    textDecoration: 'none', 
+    color: isActive ? '#0f172a' : '#64748b', 
+    fontWeight: isActive ? '700' : '500', 
     fontSize: '1rem',
     transition: 'color 0.2s ease',
   });
 
   const logoutBtnStyle = {
     padding: '8px 24px',
-    borderRadius: '50px', // 🟢 橢圓形
+    borderRadius: '50px', 
     border: 'none',
-    backgroundColor: '#334155', // Slate-700 高級深灰
-    color: '#ffffff', // 白色文字
+    backgroundColor: '#334155', 
+    color: '#ffffff', 
     fontSize: '0.9rem',
     fontWeight: '600',
     cursor: 'pointer',
@@ -103,18 +93,13 @@ export default function Navbar() {
 
   return (
     <nav style={navStyle}>
-      {/* Logo */}
       <div style={logoStyle}>Brain Barter</div>
-
       <ul style={ulStyle}>
-        {/* 永遠可見 */}
         <li>
           <NavLink to="/" end style={getLinkStyle}>
             Home
           </NavLink>
         </li>
-
-        {/* 未登入 */}
         {!loggedIn && (
           <li>
             <NavLink to="/login" style={getLinkStyle}>
@@ -122,8 +107,6 @@ export default function Navbar() {
             </NavLink>
           </li>
         )}
-
-        {/* 已登入 */}
         {loggedIn && (
           <>
             <li>

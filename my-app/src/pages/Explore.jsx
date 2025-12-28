@@ -5,22 +5,13 @@ function Explore() {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
-
   const navigate = useNavigate();
-
-  /* =====================
-     抓取使用者列表（原本功能保留）
-     ===================== */
   useEffect(() => {
     fetch(`${API_URL}/api/explore`)
       .then(res => res.json())
       .then(data => setUsers(data))
       .catch(err => console.error("抓取失敗", err));
   }, [API_URL]);
-
-  /* =====================
-     取得目前登入者（原本功能保留）
-     ===================== */
   useEffect(() => {
     const token = localStorage.getItem('loginToken');
     if (token) {
@@ -34,10 +25,6 @@ function Explore() {
         .catch(err => console.error("驗證失敗", err));
     }
   }, [API_URL]);
-
-  /* =====================
-     加好友並聊天（原本功能保留）
-     ===================== */
   const handleAddFriend = async () => {
     const token = localStorage.getItem('loginToken');
     if (!token) {
@@ -45,9 +32,7 @@ function Explore() {
       navigate('/login');
       return;
     }
-
     if (!selectedUser) return;
-
     try {
       const response = await fetch(`${API_URL}/api/add-friend`, {
         method: 'POST',
@@ -59,9 +44,7 @@ function Explore() {
           friendId: selectedUser.id
         })
       });
-
       const result = await response.json();
-
       if (response.ok) {
         setSelectedUser(null);
         alert(`好友邀請已送出給 ${selectedUser.name}！`);
@@ -74,22 +57,16 @@ function Explore() {
       alert('連線發生錯誤');
     }
   };
-
-  /* =====================
-     🎨 彩色層次 Badge（新增，不影響邏輯）
-     ===================== */
   const getSkillBadgeStyle = () => ({
     background: 'linear-gradient(135deg, #ecfeff, #dbeafe)',
     color: '#0369a1',
     boxShadow: '0 1px 3px rgba(14,165,233,0.15)'
   });
-
   const getInterestBadgeStyle = () => ({
     background: 'linear-gradient(135deg, #f5f3ff, #ede9fe)',
     color: '#5b21b6',
     boxShadow: '0 1px 3px rgba(139,92,246,0.18)'
   });
-
   return (
     <div
       style={{
@@ -111,10 +88,6 @@ function Explore() {
         >
           探索學習夥伴
         </h2>
-
-        {/* =====================
-            使用者卡片 Grid
-            ===================== */}
         <div
           style={{
             display: 'grid',
@@ -158,11 +131,9 @@ function Explore() {
                   marginBottom: '16px'
                 }}
               />
-
               <h3 style={{ marginBottom: '10px', color: '#0f172a' }}>
                 {user.name || '無名氏'}
               </h3>
-
               <p style={{ fontSize: '0.75rem', color: '#64748b' }}>
                 專長
               </p>
@@ -192,7 +163,6 @@ function Explore() {
                     </span>
                   ))}
               </div>
-
               <p style={{ fontSize: '0.75rem', color: '#64748b' }}>
                 想學
               </p>
@@ -225,13 +195,6 @@ function Explore() {
           ))}
         </div>
       </div>
-
-      {/* =====================
-          使用者詳情 Modal（功能保留）
-          ===================== */}
-      {/* =====================
-    使用者詳情 Modal（功能保留）
-   ===================== */}
 {selectedUser && (
   <div
     onClick={() => setSelectedUser(null)}
@@ -260,7 +223,6 @@ function Explore() {
         position: 'relative'
       }}
     >
-      {/* 關閉按鈕 */}
       <button
         onClick={() => setSelectedUser(null)}
         style={{
@@ -276,8 +238,6 @@ function Explore() {
       >
         ×
       </button>
-
-      {/* ===== 使用者基本資訊 ===== */}
       <div style={{ textAlign: 'center' }}>
         <img
           src={selectedUser.avatar_url || 'https://via.placeholder.com/150'}
@@ -307,10 +267,7 @@ function Explore() {
           "{selectedUser.bio || '這傢伙很懶，什麼都沒寫'}"
         </div>
       </div>
-
       <hr style={{ margin: '28px 0' }} />
-
-      {/* ===== 專長列表 ===== */}
       <h4>所有專長</h4>
       <div
         style={{
@@ -334,8 +291,6 @@ function Explore() {
           </span>
         ))}
       </div>
-
-      {/* ===== 想學目標 ===== */}
       <h4 style={{ marginTop: '24px' }}>
         想學目標
       </h4>
@@ -361,8 +316,6 @@ function Explore() {
           </span>
         ))}
       </div>
-
-      {/* ===== 行動按鈕 ===== */}
       <button
         onClick={handleAddFriend}
         disabled={currentUserId === selectedUser.id}
@@ -395,9 +348,7 @@ function Explore() {
     </div>
   </div>
 )}
-
     </div>
   );
 }
-
 export default Explore;

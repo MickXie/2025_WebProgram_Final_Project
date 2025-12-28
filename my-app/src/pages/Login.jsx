@@ -8,12 +8,7 @@ function Login() {
   const [password, setPassword] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
   const [message, setMessage] = useState("");
-
   const navigate = useNavigate();
-
-  // ===============================
-  // 4 小時內已登入 → 不可看 login
-  // ===============================
   useEffect(() => {
     const token = localStorage.getItem("loginToken");
     const timestamp = localStorage.getItem("loginTimestamp");
@@ -26,16 +21,10 @@ function Login() {
       }
     }
   }, [navigate]);
-
-  // ===============================
-  // Submit（登入 / 註冊）
-  // ===============================
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
-
     const endpoint = isRegistering ? "/api/register" : "/api/login";
-
     try {
       const response = await fetch(`${API_URL}${endpoint}`, {
         method: "POST",
@@ -45,24 +34,19 @@ function Login() {
           password: password,
         }),
       });
-
       const data = await response.json();
-
       if (!response.ok) {
         setMessage(data.error || "發生錯誤");
         return;
       }
-
       if (isRegistering) {
         setMessage("註冊成功！請直接登入。");
         setIsRegistering(false);
         return;
       }
-
       localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("loginToken", data.user.login_token);
       localStorage.setItem("loginTimestamp", Date.now().toString());
-
       alert("登入成功！");
       window.dispatchEvent(new Event("auth-changed"));
       navigate("/profile");
@@ -71,7 +55,6 @@ function Login() {
       setMessage("無法連接伺服器，請確認後端是否啟動");
     }
   };
-
   return (
     <div className="flex min-h-screen items-start justify-center bg-slate-50 px-4 pt-24 text-[#334155]">
       <MagicCard
@@ -88,17 +71,13 @@ function Login() {
         gradientColor="rgba(0,0,0,0.12)"
       >
         <div className="p-8">
-          {/* Title */}
           <h2 className="mb-1 text-center text-2xl font-semibold">
             學生帳號
           </h2>
           <p className="mb-8 text-center text-sm text-slate-500">
             登入以繼續使用 Brain Barter
           </p>
-
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Student ID */}
             <div>
               <label className="mb-1 block text-sm text-slate-500">
                 學號
@@ -123,8 +102,6 @@ function Login() {
                 "
               />
             </div>
-
-            {/* Password */}
             <div>
               <label className="mb-1 block text-sm text-slate-500">
                 密碼
@@ -149,10 +126,7 @@ function Login() {
                 "
               />
             </div>
-
-            {/* Buttons */}
             <div className="grid grid-cols-2 gap-3 pt-2">
-              {/* Login */}
               <button
                 type="submit"
                 onClick={() => setIsRegistering(false)}
@@ -175,8 +149,6 @@ function Login() {
               >
                 登入
               </button>
-
-              {/* Register */}
               <button
                 type="submit"
                 onClick={() => setIsRegistering(true)}
@@ -200,10 +172,7 @@ function Login() {
                 註冊
               </button>
             </div>
-
           </form>
-
-          {/* Message */}
           {message && (
             <p className="mt-4 text-center text-sm text-red-500">
               {message}
